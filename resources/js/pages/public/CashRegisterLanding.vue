@@ -1,0 +1,162 @@
+<script lang="ts" setup>
+import axios from 'axios';
+import { computed, reactive, ref } from 'vue';
+
+const props = defineProps<{
+    cashRegister: {
+        id: string;
+        name: string;
+    };
+}>();
+
+const token = computed(() => new URLSearchParams(window.location.search).get('token'));
+
+const form = reactive({
+    needs_cash_removal: false,
+    needs_change: false,
+    notes: '',
+    change_items: [
+        { denomination: 50, quantity: 0 }, // 50 cent
+        { denomination: 100, quantity: 0 }, // 1 Euro
+        { denomination: 200, quantity: 0 }, // 2 Euro
+    ],
+});
+
+const submitting = ref(false);
+const submitted = ref(false);
+const error = ref<string | null>(null);
+
+function increment(item: { denomination: number; quantity: number }) {
+    item.quantity++;
+}
+
+function decrement(item: { denomination: number; quantity: number }) {
+    if (item.quantity > 0) item.quantity--;
+}
+
+async function submit() {
+    if (!token.value) {
+        error.value = 'Token is missing.';
+        return;
+    }
+
+    submitting.value = true;
+    error.value = null;
+
+    const requests: Promise<any>[] = [];
+
+    if (form.needs_cash_removal) {
+        requests.push(
+            axios.post(`/api/cash-registers/${props.cashRegister.id}/work-orders?token=${token.value}`, {
+                type: 'overflow',
+                notes: form.notes,
+            }),
+        );
+    }
+
+    if (form.needs_change) {
+        const items = form.change_items.filter((i) => i.quantity > 0);
+
+        if (items.length === 0) {
+            error.value = 'Please specify at least one coin roll needed.';
+            submitting.value = false;
+            return;
+        }
+
+        requests.push(
+            axios.post(`/api/cash-registers/${props.cashRegister.id}/work-orders?token=${token.value}`, {
+                type: 'change_request',
+                notes: form.notes,
+                items,
+            }),
+        );
+    }
+
+    if (requests.length === 0) {
+        error.value = 'Please select at least one option.';
+        submitting.value = false;
+        return;
+    }
+
+    try {
+        await Promise.all(requests);
+        submitted.value = true;
+    } catch (e) {
+        console.error(e);
+        error.value = 'An error occurred while submitting the request.';
+    } finally {
+        submitting.value = false;
+    }
+}
+</script>
+
+<template>
+    <div class="flex min-h-screen flex-col items-center justify-center bg-white p-4 text-gray-900 dark:bg-black dark:text-gray-100">
+        <div class="w-full max-w-xl rounded-xl bg-gray-50 p-6 shadow dark:bg-gray-900">
+            <h1 class="mb-4 text-center text-2xl font-bold">Cash Register - {{ cashRegister.name }}</h1>
+
+            <div v-if="submitted" class="text-center text-xl font-semibold text-green-600">✅ Request was successfully submitted. Thank you!</div>
+
+            <form v-else class="space-y-4" @submit.prevent="submit">
+                <div>
+                    <label class="flex items-center space-x-2">
+                        <input v-model="form.needs_cash_removal" type="checkbox" />
+                        <span>Cash overflow (needs removal)</span>
+                    </label>
+                </div>
+
+                <div>
+                    <label class="flex items-center space-x-2">
+                        <input v-model="form.needs_change" type="checkbox" />
+                        <span>Change needed</span>
+                    </label>
+                </div>
+
+                <div v-if="form.needs_change" class="flex flex-col gap-2">
+                    <div v-for="item in form.change_items" :key="item.denomination" class="flex items-center justify-between">
+                        <label class="w-32">
+                            <span v-if="item.denomination === 50">50 cents</span>
+                            <span v-else-if="item.denomination === 100">1 euro</span>
+                            <span v-else-if="item.denomination === 200">2 euros</span>
+                        </label>
+                        <div class="flex items-center gap-2">
+                            <button
+                                class="h-8 w-8 rounded bg-gray-300 font-bold text-black dark:bg-gray-700 dark:text-white"
+                                type="button"
+                                @click="decrement(item)"
+                            >
+                                -
+                            </button>
+                            <span class="w-6 text-center">{{ item.quantity }}</span>
+                            <button
+                                class="h-8 w-8 rounded bg-gray-300 font-bold text-black dark:bg-gray-700 dark:text-white"
+                                type="button"
+                                @click="increment(item)"
+                            >
+                                +
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-medium">Notes (optional)</label>
+                    <textarea v-model="form.notes" class="w-full rounded border px-2 py-1" rows="3"></textarea>
+                </div>
+
+                <div v-if="error" class="text-sm font-semibold text-red-600">{{ error }}</div>
+
+                <button :disabled="submitting" class="w-full rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700" type="submit">
+                    {{ submitting ? 'Submitting...' : 'Submit' }}
+                </button>
+            </form>
+        </div>
+    </div>
+</template>
+
+<style scoped>
+body {
+    margin: 0;
+    font-family: system-ui, sans-serif;
+}
+</style>
