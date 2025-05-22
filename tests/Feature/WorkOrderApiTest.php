@@ -18,14 +18,24 @@ class WorkOrderApiTest extends TestCase {
         $register = CashRegister::factory()->create();
 
         $response = $this->postJson("/api/cash-registers/{$register->id}/work-orders?token={$register->token}", [
-            'type'  => 'overflow',
-            'notes' => 'register too full',
+            'type' => 'overflow',
         ]);
 
         $response->assertCreated()
-                 ->assertJsonFragment(['type' => 'overflow', 'notes' => 'register too full']);
+                 ->assertJsonFragment(['type' => 'overflow']);
 
         $this->assertDatabaseHas('work_orders', ['type' => 'overflow', 'cash_register_id' => $register->id]);
+    }
+
+    #[Test]
+    public function public_cant_create_with_missing_token() {
+        $register = CashRegister::factory()->create();
+
+        $response = $this->postJson("/api/cash-registers/{$register->id}/work-orders", [
+            'type' => 'overflow',
+        ]);
+
+        $response->assertForbidden();
     }
 
     #[Test]
@@ -146,4 +156,26 @@ class WorkOrderApiTest extends TestCase {
 
         $response->assertNotFound();
     }
+
+    #[Test]
+    public function admin_can_get_work_order_counts() {
+        $user = User::factory()->create();
+        Passport::actingAs($user);
+
+        WorkOrder::factory()->create(['status' => 'pending']);
+        WorkOrder::factory()->create(['status' => 'pending']);
+        WorkOrder::factory()->create(['status' => 'in_progress']);
+        WorkOrder::factory()->create(['status' => 'done']);
+
+        $response = $this->getJson('/api/work-orders/count');
+
+        $response->assertOk()
+                 ->assertJson([
+                                  'total'       => 4,
+                                  'pending'     => 2,
+                                  'in_progress' => 1,
+                                  'done'        => 1,
+                              ]);
+    }
+
 }
