@@ -14,6 +14,11 @@ Route::get('/dashboard', function() {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('/cash-registers/manage', function() {
+    return Inertia::render('CashRegister');
+})->middleware(['auth', 'verified']);
+
+
 Route::get('/cash-registers/{cashRegister}', function(Request $request, string $cashRegister) {
     $model = CashRegister::findOrFail($cashRegister);
 

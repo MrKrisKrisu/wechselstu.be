@@ -1,0 +1,100 @@
+name: "Docker Image"
+
+on:
+  push:
+    tags:
+      - '*'
+
+env:
+  IMAGE_NAME: wechselstu.be
+
+jobs:
+  push:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: |
+          # Extract the version from the Git reference
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+
+          # If the reference is a tag, strip the "v" prefix
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+
+          # Use "main" as the version if it is the main branch
+          [ "$VERSION" == "main" ] && VERSION=main
+
+          # Save the version to a file for future reference
+          echo "$VERSION" > VERSION
+
+          # Set up Docker Buildx for multi-platform builds
+          docker buildx create --use
+
+          # Build the Docker image with multiple tags and labels
+          #--platform linux/arm64/v8
+          docker buildx build . \
+          --file Dockerfile \
+          --tag $IMAGE_NAME:$VERSION \
+          --tag $IMAGE_NAME:latest \
+          --label "runnumber=${{ github.run_number }}" \
+          --load
+
+      - name: Log in to registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Push image as versioned tag
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+
+          # Convert the image ID to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+
+          # Extract the version from the Git reference
+          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
+
+          # If the reference is a tag, strip the "v" prefix
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+
+          # Use "latest" as the version for the main branch
+          [ "$VERSION" == "main" ] && VERSION=latest
+
+          echo IMAGE_ID=$IMAGE_ID
+
+          echo VERSION=$VERSION
+
+          # Tag the Docker image with the versioned tag
+          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
+
+          # Push the versioned tag to the registry
+          docker push $IMAGE_ID:$VERSION
+
+      - name: Push image as latest
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/$IMAGE_NAME
+
+          # Convert the image ID to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+
+          # Set the version to "latest"
+          VERSION=latest
+
+          # If the reference is a tag, strip the "v" prefix
+          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
+
+          # Use "latest" as the version for the main branch
+          [ "$VERSION" == "main" ] && VERSION=latest
+
+          echo IMAGE_ID=$IMAGE_ID
+
+          echo VERSION=$VERSION
+
+          # Tag the Docker image with the "latest" tag
+          docker tag $IMAGE_NAME $IMAGE_ID:$VERSION
+
+          # Push the "latest" tag to the registry
+          docker push $IMAGE_ID:$VERSION

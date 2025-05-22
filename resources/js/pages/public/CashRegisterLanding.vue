@@ -83,6 +83,10 @@ async function submit() {
                 {{ cashRegister.name }}
             </h1>
 
+            <p class="mb-4 text-center text-sm text-gray-600 dark:text-gray-300">
+                ❓ For questions or issues, please call DECT <strong>4354</strong>.
+            </p>
+
             <template v-if="submitted">
                 <div class="text-center text-xl font-semibold text-green-600">✅ Request was successfully submitted.</div>
             </template>
@@ -105,7 +109,7 @@ async function submit() {
                 <template v-else>
                     <button
                         :disabled="submitting"
-                        class="w-full rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+                        class="mt-3 w-full rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
                         @click="
                             () => {
                                 form.hasOverflow = true;
@@ -128,9 +132,9 @@ async function submit() {
                 <div v-if="form.needsChange" class="mt-4 flex flex-col gap-4">
                     <div v-for="item in form.changeItems" :key="item.denomination" class="flex items-center justify-between text-lg">
                         <label class="w-32">
-                            <span v-if="item.denomination === 50">0,50 Euro</span>
-                            <span v-else-if="item.denomination === 100">1,00 Euro</span>
-                            <span v-else-if="item.denomination === 200">2,00 Euro</span>
+                            <span v-if="item.denomination === 50">0.50 Euro</span>
+                            <span v-else-if="item.denomination === 100">1.00 Euro</span>
+                            <span v-else-if="item.denomination === 200">2.00 Euro</span>
                         </label>
                         <div class="flex items-center gap-2">
                             <button
