@@ -12,13 +12,12 @@ const props = defineProps<{
 const token = computed(() => new URLSearchParams(window.location.search).get('token'));
 
 const form = reactive({
-    has_overflow: false,
-    needs_change: false,
-    notes: '',
-    change_items: [
-        { denomination: 50, quantity: 0 }, // 50 cent
-        { denomination: 100, quantity: 0 }, // 1 Euro
-        { denomination: 200, quantity: 0 }, // 2 Euro
+    hasOverflow: false,
+    needsChange: false,
+    changeItems: [
+        { denomination: 50, quantity: 0 },
+        { denomination: 100, quantity: 0 },
+        { denomination: 200, quantity: 0 },
     ],
 });
 
@@ -26,51 +25,39 @@ const submitting = ref(false);
 const submitted = ref(false);
 const error = ref<string | null>(null);
 
-function increment(item: { denomination: number; quantity: number }) {
+function increment(item: (typeof form.changeItems)[number]) {
     item.quantity++;
 }
 
-function decrement(item: { denomination: number; quantity: number }) {
-    if (item.quantity > 0) item.quantity--;
+function decrement(item: (typeof form.changeItems)[number]) {
+    if (item.quantity > 0) {
+        item.quantity--;
+    }
 }
 
-async function submitOverflow() {
-    axios
-        .post(`/api/cash-registers/${props.cashRegister.id}/work-orders?token=${token.value}`, {
-            type: 'overflow',
-            notes: form.notes,
-        })
-        .then(() => {
-            submitted.value = true;
-        })
-        .catch((e) => {
-            console.error(e);
-            error.value = 'An error occurred while submitting the request.';
-        });
-}
+async function submitRequest(type: 'overflow' | 'change_request') {
+    const payload: Record<string, unknown> = { type };
 
-async function submitChangeRequest() {
-    const items = form.change_items.filter((i) => i.quantity > 0);
+    if (type === 'change_request') {
+        const items = form.changeItems.filter((item) => item.quantity > 0);
 
-    if (items.length === 0) {
-        error.value = 'Please specify at least one coin roll needed.';
-        submitting.value = false;
-        return;
+        if (items.length === 0) {
+            error.value = 'Please specify at least one coin roll needed.';
+            return;
+        }
+
+        payload.items = items;
     }
 
-    axios
-        .post(`/api/cash-registers/${props.cashRegister.id}/work-orders?token=${token.value}`, {
-            type: 'change_request',
-            notes: form.notes,
-            items,
-        })
-        .then(() => {
-            submitted.value = true;
-        })
-        .catch((e) => {
-            console.error(e);
-            error.value = 'An error occurred while submitting the request.';
-        });
+    const url = `/api/cash-registers/${props.cashRegister.id}/work-orders`;
+
+    try {
+        await axios.post(`${url}?token=${token.value}`, payload);
+        submitted.value = true;
+    } catch (e) {
+        console.error(e);
+        error.value = 'An error occurred while submitting the request.';
+    }
 }
 
 async function submit() {
@@ -81,11 +68,11 @@ async function submit() {
 
     submitting.value = true;
     error.value = null;
-    if (form.has_overflow) {
-        await submitOverflow();
-    } else {
-        await submitChangeRequest();
-    }
+
+    const requestType = form.hasOverflow ? 'overflow' : 'change_request';
+    await submitRequest(requestType);
+
+    submitting.value = false;
 }
 </script>
 
@@ -96,76 +83,85 @@ async function submit() {
                 {{ cashRegister.name }}
             </h1>
 
-            <div v-if="submitted" class="text-center text-xl font-semibold text-green-600">✅ Request was successfully submitted.</div>
-            <div v-else>
-                <div v-if="form.needs_change || form.has_overflow" class="flex flex-col gap-2">
+            <template v-if="submitted">
+                <div class="text-center text-xl font-semibold text-green-600">✅ Request was successfully submitted.</div>
+            </template>
+
+            <template v-else>
+                <template v-if="(form.needsChange || form.hasOverflow) && !submitting">
                     <button
                         class="w-full rounded bg-gray-500 px-4 py-2 font-bold text-white hover:bg-gray-700"
                         @click="
-                            form.has_overflow = false;
-                            form.needs_change = false;
+                            () => {
+                                form.hasOverflow = false;
+                                form.needsChange = false;
+                            }
                         "
                     >
-                        Go back
+                        ← Go back
                     </button>
-                </div>
-                <div v-else class="space-y-4">
+                </template>
+
+                <template v-else>
                     <button
                         :disabled="submitting"
                         class="w-full rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-                        @click="form.has_overflow = !form.has_overflow"
+                        @click="
+                            () => {
+                                form.hasOverflow = true;
+                                submit();
+                            }
+                        "
                     >
-                        <i class="fa-solid fa-money-bill-wave"></i>
                         💸 Cash overflow (needs removal)
                     </button>
 
                     <button
-                        class="w-full rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
-                        @click="form.needs_change = !form.needs_change"
+                        :disabled="submitting"
+                        class="mt-3 w-full rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+                        @click="() => (form.needsChange = !form.needsChange)"
                     >
                         🔁 Change needed
                     </button>
-                </div>
+                </template>
 
-                <div v-if="form.needs_change" class="mt-3 flex flex-col gap-2">
-                    <div v-for="item in form.change_items" :key="item.denomination" class="flex items-center justify-between text-lg">
+                <div v-if="form.needsChange" class="mt-4 flex flex-col gap-4">
+                    <div v-for="item in form.changeItems" :key="item.denomination" class="flex items-center justify-between text-lg">
                         <label class="w-32">
-                            <span v-if="item.denomination === 50">0,50 €</span>
-                            <span v-else-if="item.denomination === 100">1,00 €</span>
-                            <span v-else-if="item.denomination === 200">2,00 €</span>
+                            <span v-if="item.denomination === 50">0,50 Euro</span>
+                            <span v-else-if="item.denomination === 100">1,00 Euro</span>
+                            <span v-else-if="item.denomination === 200">2,00 Euro</span>
                         </label>
                         <div class="flex items-center gap-2">
                             <button
-                                class="h-12 w-12 rounded bg-gray-300 font-bold text-black dark:bg-gray-700 dark:text-white"
+                                class="h-10 w-10 rounded bg-gray-300 font-bold text-black dark:bg-gray-700 dark:text-white"
                                 type="button"
-                                @click="decrement(item)"
+                                @click="() => decrement(item)"
                             >
                                 -
                             </button>
-                            <span class="w-6 text-center">{{ item.quantity }}</span>
+                            <span class="w-8 text-center">{{ item.quantity }}</span>
                             <button
-                                class="h-12 w-12 rounded bg-gray-300 font-bold text-black dark:bg-gray-700 dark:text-white"
+                                class="h-10 w-10 rounded bg-gray-300 font-bold text-black dark:bg-gray-700 dark:text-white"
                                 type="button"
-                                @click="increment(item)"
+                                @click="() => increment(item)"
                             >
                                 +
                             </button>
                         </div>
                     </div>
-                </div>
-                <div v-if="form.needs_change || form.has_overflow" class="flex flex-col gap-2">
-                    <div>
-                        <label class="mt-3 mb-1 block text-sm font-medium">Some (optional) comments?</label>
-                        <textarea v-model="form.notes" class="w-full rounded border px-2 py-1" rows="3"></textarea>
-                    </div>
 
                     <div v-if="error" class="text-sm font-semibold text-red-600">{{ error }}</div>
 
-                    <button :disabled="submitting" class="w-full rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700" @click="submit">
+                    <button
+                        :disabled="submitting"
+                        class="w-full rounded bg-green-600 px-4 py-2 font-bold text-white hover:bg-green-700"
+                        @click="submit"
+                    >
                         {{ submitting ? 'Submitting...' : 'Submit' }}
                     </button>
                 </div>
-            </div>
+            </template>
         </div>
     </div>
 </template>

@@ -49,20 +49,34 @@ class PublicWorkOrderController extends Controller {
             }
         }
 
-        $message = match ($workOrder->type) {
-            WorkOrderType::CHANGE_REQUEST => $this->formatChangeRequestMessage($cashRegister->name ?? $cashRegister->id, $data['items'], $data['notes'] ?? null),
-            WorkOrderType::OVERFLOW       => "💰 Cash overflow reported at register „{$cashRegister->name}”." . ($data['notes'] ? "\n\nNotes: {$data['notes']}" : ''),
-        };
 
-        MatrixService::sendMessage($message);
+        $matrix  = new MatrixService();
+        $eventId = $matrix->sendNewMessage($this->getMessageForWorkOrder($workOrder));
+        $workOrder->update(['event_id' => $eventId]);
 
         $workOrder->load('changeRequestItems');
 
         return new WorkOrderResource($workOrder);
     }
 
-    private function formatChangeRequestMessage(string $registerName, array $items, ?string $notes = null): string {
-        $lines = ["🔄 Change requested at register „{$registerName}”:"];
+    public static function getMessageForWorkOrder(WorkOrder $workOrder): string {
+        $registerName = $workOrder->cashRegister->name ?? $workOrder->cashRegister->id;
+
+        $message = $workOrder->status->getEmoji() . ' - ';
+        $message .= match ($workOrder->type) {
+            WorkOrderType::CHANGE_REQUEST => self::formatChangeRequestMessage($registerName, $workOrder->changeRequestItems->toArray(), $workOrder->notes),
+            WorkOrderType::OVERFLOW       => "Cash overflow reported at register „{$registerName}”." . ($workOrder->notes ? "\n\nNotes: {$workOrder->notes}" : ''),
+        };
+
+        if($workOrder->status === WorkOrderStatus::DONE) {
+            return "<s>" . $message . "</s>";
+        }
+
+        return $message;
+    }
+
+    private static function formatChangeRequestMessage(string $registerName, array $items, ?string $notes = null): string {
+        $lines = ["Change requested at register „{$registerName}”:"];
 
         foreach($items as $item) {
             $euro    = $item['denomination'] >= 100 ? ($item['denomination'] / 100) . ' Euro' : $item['denomination'] . ' Cent';

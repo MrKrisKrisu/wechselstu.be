@@ -23,7 +23,6 @@ class WorkOrderFactory extends Factory {
             'cash_register_id' => CashRegister::factory(),
             'type'             => $this->faker->randomElement(['overflow', 'change_request']),
             'status'           => WorkOrderStatus::PENDING,
-            'notes'            => $this->faker->optional()->sentence,
         ];
     }
 }
