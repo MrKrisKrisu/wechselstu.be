@@ -26,8 +26,8 @@ RUN apt update && \
     apt install -y wait-for-it
 
 COPY --chown=www-data:www-data . /var/www/html
-COPY --from=node --chown=www-data:www-data /app/public/build /var/www/html/public/build
 COPY --from=composer --chown=www-data:www-data /app/vendor /var/www/html/vendor
+COPY --from=node --chown=www-data:www-data /app/public/build /var/www/html/public/build
 
 CMD ["/var/www/html/docker-entrypoint.sh"]
 
