@@ -1,7 +1,7 @@
 FROM composer:2 AS composer
 WORKDIR /app
 COPY . /app
-RUN composer install --ignore-platform-reqs --no-interaction --no-dev --no-progress --no-suggest --optimize-autoloader
+RUN composer install --ignore-platform-reqs --no-interaction --no-progress --no-suggest --optimize-autoloader
 
 FROM node:24-alpine AS node
 WORKDIR /app
