@@ -1,12 +1,14 @@
-FROM node:24-alpine AS node
-WORKDIR /app
-COPY . /app
-RUN npm i && npm run build
-
 FROM composer:2 AS composer
 WORKDIR /app
 COPY . /app
 RUN composer install --ignore-platform-reqs --no-interaction --no-dev --no-progress --no-suggest --optimize-autoloader
+
+FROM node:24-alpine AS node
+WORKDIR /app
+COPY . /app
+# composer package ziggy is required to build the frontend assets
+COPY --from=composer --chown=www-data:www-data /app/vendor /var/www/html/vendor
+RUN npm i && npm run build
 
 FROM php:8.4.7-apache
 WORKDIR /var/www/html
