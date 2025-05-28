@@ -3,7 +3,7 @@ name: "Docker Image"
 on:
   push:
     branches:
-      - '*'  # Match all branches
+      - 'dev-ks/*'
 #    tags:
 #      - '*'
 
