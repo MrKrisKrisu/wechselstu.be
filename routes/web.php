@@ -19,10 +19,9 @@ Route::get('/cash-registers/manage', function() {
 })->middleware(['auth', 'verified']);
 
 
-Route::get('/cash-registers/{cashRegister}', function(Request $request, string $cashRegister) {
+Route::get('/cash-registers/{cashRegister}/{token}', function(Request $request, string $cashRegister, string $token) {
     $model = CashRegister::findOrFail($cashRegister);
 
-    $token = $request->query('token');
     if(!$token || $token !== $model->token) {
         throw new AccessDeniedHttpException('Ungültiger oder fehlender Token.');
     }

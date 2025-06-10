@@ -97,7 +97,7 @@ onMounted(() => {
                         <td class="px-4 py-2 font-mono text-sm text-gray-700 dark:text-gray-200">{{ register.token }}</td>
                         <td class="px-4 py-2">
                             <a
-                                :href="`/cash-registers/${register.id}?token=${register.token}`"
+                                :href="`/cash-registers/${register.id}/${register.token}`"
                                 class="text-sm text-blue-600 hover:underline dark:text-blue-400"
                                 target="_blank"
                             >

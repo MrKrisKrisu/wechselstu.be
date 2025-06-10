@@ -181,7 +181,7 @@ onMounted(async () => {
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap dark:text-gray-200">
                                 <a
-                                    :href="'/cash-registers/' + task.registerId + '/?token=' + task.registerToken"
+                                    :href="'/cash-registers/' + task.registerId + '/' + task.registerToken"
                                     class="text-blue-600 hover:underline"
                                     target="_blank"
                                 >
