@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import axios from 'axios';
-import { computed, reactive, ref } from 'vue';
+import { reactive, ref } from 'vue';
 
 const props = defineProps<{
     cashRegister: {
@@ -9,7 +9,13 @@ const props = defineProps<{
     };
 }>();
 
-const token = computed(() => new URLSearchParams(window.location.search).get('token'));
+const url = window.location.href;
+const token = ref<string | null>(null);
+const parts = url.split('/');
+const tokenPart = parts[parts.length - 1];
+if (tokenPart) {
+    token.value = tokenPart;
+}
 
 const form = reactive({
     hasOverflow: false,
