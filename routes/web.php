@@ -23,7 +23,7 @@ Route::get('/cash-registers/{cashRegister}/{token}', function(Request $request, 
     $model = CashRegister::findOrFail($cashRegister);
 
     if(!$token || $token !== $model->token) {
-        throw new AccessDeniedHttpException('Ungültiger oder fehlender Token.');
+        throw new AccessDeniedHttpException('Invalid or missing token.');
     }
 
     return Inertia::render('public/CashRegisterLanding', [
