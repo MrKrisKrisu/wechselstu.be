@@ -8,10 +8,13 @@ import { onMounted, ref } from 'vue';
 type Task = {
     id: string;
     register: string;
+    registerId: string;
+    registerToken: string;
     type: 'overflow' | 'change_request';
     details: string;
     status: 'pending' | 'in_progress' | 'done';
 };
+
 type ApiTask = {
     id: string;
     status: 'pending' | 'in_progress' | 'done';
@@ -21,25 +24,26 @@ type ApiTask = {
     change_request_items: Array<{ denomination: number; quantity: number }>;
     created_at: string;
 };
+
 type CountResponse = { total: number; pending: number; in_progress: number; done: number };
 type ApiResponse = {
     data: ApiTask[];
-    links: { first: string | null; prev: string | null; next: string | null; last: string | null };
+    links: { next: string | null; prev: string | null };
     meta: { next_cursor: string | null; prev_cursor: string | null; per_page: number };
 };
 
 const breadcrumbs = ref<BreadcrumbItem[]>([{ title: 'Dashboard', href: '/dashboard' }]);
 const tasks = ref<Task[]>([]);
 const counts = ref<CountResponse>({ total: 0, pending: 0, in_progress: 0, done: 0 });
-const loading = ref<boolean>(false);
+const loading = ref(false);
 const nextCursor = ref<string | null>(null);
 const prevCursor = ref<string | null>(null);
 const statusFilter = ref<string | null>(null);
 
 const formatDetails = (task: ApiTask): string =>
-    task.type === 'change_request' ? task.change_request_items.map((i) => `${i.denomination}€ × ${i.quantity}`).join(', ') : (task.notes ?? '');
+    task.type === 'change_request' ? task.change_request_items.map((i) => `${i.denomination} cent × ${i.quantity}`).join(', ') : (task.notes ?? '');
 
-const fetchCounts = async (): Promise<void> => {
+const fetchCounts = async () => {
     try {
         const response = await axios.get<CountResponse>('/api/work-orders/count');
         counts.value = response.data;
@@ -48,7 +52,7 @@ const fetchCounts = async (): Promise<void> => {
     }
 };
 
-const fetchTasks = async (cursor: string | null = null): Promise<void> => {
+const fetchTasks = async (cursor: string | null = null) => {
     loading.value = true;
     try {
         const params: Record<string, any> = {};
@@ -74,7 +78,7 @@ const fetchTasks = async (cursor: string | null = null): Promise<void> => {
     }
 };
 
-const updateStatus = async (task: Task, newStatus: Task['status']): Promise<void> => {
+const updateStatus = async (task: Task, newStatus: Task['status']) => {
     try {
         await axios.put(`/api/work-orders/${task.id}`, { status: newStatus });
         task.status = newStatus;
@@ -84,14 +88,10 @@ const updateStatus = async (task: Task, newStatus: Task['status']): Promise<void
     }
 };
 
-const onStatusChange = (task: Task, value: Task['status']) => {
-    const backward =
-        (task.status === 'done' && (value === 'in_progress' || value === 'pending')) || (task.status === 'in_progress' && value === 'pending');
-    if (backward && !confirm('Are you sure you want to reset the status?')) {
-        fetchTasks(prevCursor.value);
-        return;
-    }
-    updateStatus(task, value);
+const onStatusChange = (task: Task, newStatus: Task['status']) => {
+    const backward = (task.status === 'done' && newStatus !== 'done') || (task.status === 'in_progress' && newStatus === 'pending');
+    if (backward && !confirm('Are you sure you want to reset the status?')) return;
+    updateStatus(task, newStatus);
 };
 
 onMounted(async () => {
@@ -104,101 +104,75 @@ onMounted(async () => {
     <Head title="Dashboard" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-col gap-4 p-4">
-            <div class="mb-4 flex items-center">
-                <h1 class="text-2xl font-semibold">Dashboard</h1>
+            <h1 class="text-2xl font-semibold">Dashboard</h1>
+
+            <div class="flex flex-wrap gap-2">
+                <div class="min-w-[6rem] flex-1 rounded border p-2 text-center">
+                    <div class="text-sm">Total</div>
+                    <div class="text-xl">{{ counts.total }}</div>
+                </div>
+                <div class="min-w-[6rem] flex-1 rounded border p-2 text-center">
+                    <div class="text-sm">Pending</div>
+                    <div class="text-xl">{{ counts.pending }}</div>
+                </div>
+                <div class="min-w-[6rem] flex-1 rounded border p-2 text-center">
+                    <div class="text-sm">In Progress</div>
+                    <div class="text-xl">{{ counts.in_progress }}</div>
+                </div>
+                <div class="min-w-[6rem] flex-1 rounded border p-2 text-center">
+                    <div class="text-sm">Done</div>
+                    <div class="text-xl">{{ counts.done }}</div>
+                </div>
             </div>
 
-            <!-- Filter -->
-            <div class="mb-4 flex items-center gap-2">
-                <label class="font-medium">Status Filter:</label>
+            <div class="flex items-center gap-2">
+                <label>Status:</label>
                 <select v-model="statusFilter" class="rounded border px-2 py-1 text-sm">
                     <option value="">All</option>
                     <option value="pending">Pending</option>
                     <option value="in_progress">In Progress</option>
                     <option value="done">Done</option>
                 </select>
-                <button class="ml-2 rounded bg-green-500 px-3 py-1 text-white hover:bg-green-600" @click="() => fetchTasks()">Apply</button>
+                <button class="rounded bg-blue-500 px-3 py-1 text-white" @click="fetchTasks">Apply</button>
             </div>
 
-            <!-- Summary Cards Mobile Friendly -->
-            <div class="mb-4 overflow-x-auto">
-                <div class="flex gap-4 md:grid md:grid-cols-4">
-                    <div class="min-w-[8rem] flex-shrink-0 rounded-lg border p-3 text-center shadow-sm">
-                        <h3 class="text-sm font-medium">Total</h3>
-                        <p class="text-2xl">{{ counts.total }}</p>
+            <div class="grid gap-4 md:grid-cols-2">
+                <div v-for="task in tasks" :key="task.id" class="rounded border p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                    <div class="font-semibold">{{ task.register }}</div>
+                    <div class="capitalize">{{ task.type === 'change_request' ? 'Change Request' : 'Overflow' }}</div>
+                    <div class="mt-1 text-sm">{{ task.details }}</div>
+                    <div class="mt-3 flex flex-wrap gap-2">
+                        <button
+                            :class="task.status === 'pending' ? 'bg-yellow-500' : 'bg-gray-500'"
+                            class="flex-1 rounded px-3 py-2 text-white"
+                            @click="onStatusChange(task, 'pending')"
+                        >
+                            Pending
+                        </button>
+                        <button
+                            :class="task.status === 'in_progress' ? 'bg-blue-500' : 'bg-gray-500'"
+                            class="flex-1 rounded px-3 py-2 text-white"
+                            @click="onStatusChange(task, 'in_progress')"
+                        >
+                            In Progress
+                        </button>
+                        <button
+                            :class="task.status === 'done' ? 'bg-green-500' : 'bg-gray-500'"
+                            class="flex-1 rounded px-3 py-2 text-white"
+                            @click="onStatusChange(task, 'done')"
+                        >
+                            Done
+                        </button>
                     </div>
-                    <div class="min-w-[8rem] flex-shrink-0 rounded-lg border p-3 text-center shadow-sm">
-                        <h3 class="text-sm font-medium">Pending</h3>
-                        <p class="text-2xl">{{ counts.pending }}</p>
-                    </div>
-                    <div class="min-w-[8rem] flex-shrink-0 rounded-lg border p-3 text-center shadow-sm">
-                        <h3 class="text-sm font-medium">In Progress</h3>
-                        <p class="text-2xl">{{ counts.in_progress }}</p>
-                    </div>
-                    <div class="min-w-[8rem] flex-shrink-0 rounded-lg border p-3 text-center shadow-sm">
-                        <h3 class="text-sm font-medium">Done</h3>
-                        <p class="text-2xl">{{ counts.done }}</p>
+                    <div class="mt-2 text-sm">
+                        <a :href="`/cash-registers/${task.registerId}/${task.registerToken}`" class="text-blue-400 underline" target="_blank">
+                            View public page
+                        </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Table -->
-            <div class="overflow-x-auto rounded-lg shadow">
-                <table class="min-w-full divide-y divide-gray-200 bg-white dark:divide-gray-700 dark:bg-gray-900">
-                    <thead class="bg-gray-50 dark:bg-gray-700">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-300">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-300">Register</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-300">Type</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-300">Details</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white dark:bg-gray-900">
-                        <tr
-                            v-for="task in tasks"
-                            :key="task.id"
-                            :class="[
-                                'odd:bg-white even:bg-gray-50 dark:odd:bg-gray-900 dark:even:bg-gray-800',
-                                task.status === 'pending' ? 'bg-yellow-50 dark:bg-yellow-900 dark:text-yellow-100' : '',
-                                task.status === 'in_progress' ? 'bg-blue-50 dark:bg-blue-900 dark:text-blue-100' : '',
-                            ]"
-                        >
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <select
-                                    v-model="task.status"
-                                    :class="[
-                                        'rounded border px-2 py-1 text-sm',
-                                        task.status === 'pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100' : '',
-                                        task.status === 'in_progress' ? 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100' : '',
-                                        task.status === 'done' ? 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100' : '',
-                                    ]"
-                                    @change="onStatusChange(task, $event.target.value)"
-                                >
-                                    <option value="pending">Pending</option>
-                                    <option value="in_progress">In Progress</option>
-                                    <option value="done">Done</option>
-                                </select>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap dark:text-gray-200">
-                                <a
-                                    :href="'/cash-registers/' + task.registerId + '/' + task.registerToken"
-                                    class="text-blue-600 hover:underline"
-                                    target="_blank"
-                                >
-                                    {{ task.register }}
-                                </a>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap capitalize dark:text-gray-200">
-                                {{ task.type === 'change_request' ? 'Change Request' : 'Overflow' }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap dark:text-gray-200">{{ task.details }}</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Pagination -->
-            <div class="mt-4 flex items-center justify-between">
+            <div class="mt-4 flex justify-between">
                 <button
                     :disabled="!prevCursor || loading"
                     class="rounded border px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"

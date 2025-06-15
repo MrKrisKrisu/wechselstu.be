@@ -13,7 +13,8 @@ use Illuminate\Validation\Rule;
 class WorkOrderController extends Controller {
 
     public function index(Request $request): AnonymousResourceCollection {
-        $query = WorkOrder::with(['changeRequestItems', 'cashRegister']);
+        $query = WorkOrder::with(['changeRequestItems', 'cashRegister'])
+                          ->orderBy('status');
 
         if($request->has('status')) {
             $request->validate([
