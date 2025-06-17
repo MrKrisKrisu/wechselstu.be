@@ -8,7 +8,6 @@ use App\Models\WorkOrder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
-use Illuminate\Validation\Rule;
 
 class WorkOrderController extends Controller {
 
@@ -16,18 +15,27 @@ class WorkOrderController extends Controller {
         $query = WorkOrder::with(['changeRequestItems', 'cashRegister'])
                           ->orderBy('status');
 
-        if($request->has('status')) {
-            $request->validate([
-                                   'status' => ['nullable', Rule::enum(WorkOrderStatus::class)],
-                               ]);
+        if($request->filled('status')) {
+            $statuses = array_filter(
+                explode(',', $request->input('status')),
+                fn($status) => $status !== ''
+            );
 
-            $query->where('status', $request->input('status'));
+            // check every status value
+            foreach($statuses as $status) {
+                if(!WorkOrderStatus::tryFrom($status)) {
+                    abort(422, "Invalid status value: {$status}");
+                }
+            }
+
+            $query->whereIn('status', $statuses);
         }
 
         $workOrders = $query->cursorPaginate();
 
         return WorkOrderResource::collection($workOrders);
     }
+
 
     public function count(): JsonResponse {
         $total      = WorkOrder::count();

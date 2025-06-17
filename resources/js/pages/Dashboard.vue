@@ -38,7 +38,7 @@ const counts = ref<CountResponse>({ total: 0, pending: 0, in_progress: 0, done: 
 const loading = ref(false);
 const nextCursor = ref<string | null>(null);
 const prevCursor = ref<string | null>(null);
-const statusFilter = ref<string | null>(null);
+const statusFilter = ref<string>('pending,in_progress'); // Default filter to pending and in_progress
 
 const formatDetails = (task: ApiTask): string =>
     task.type === 'change_request' ? task.change_request_items.map((i) => `${i.denomination} cent × ${i.quantity}`).join(', ') : (task.notes ?? '');
@@ -94,6 +94,11 @@ const onStatusChange = (task: Task, newStatus: Task['status']) => {
     updateStatus(task, newStatus);
 };
 
+const loadAll = async () => {
+    statusFilter.value = '';
+    await fetchTasks();
+};
+
 onMounted(async () => {
     await fetchCounts();
     await fetchTasks();
@@ -104,13 +109,7 @@ onMounted(async () => {
     <Head title="Dashboard" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-col gap-4 p-4">
-            <h1 class="text-2xl font-semibold">Dashboard</h1>
-
             <div class="flex flex-wrap gap-2">
-                <div class="min-w-[6rem] flex-1 rounded border p-2 text-center">
-                    <div class="text-sm">Total</div>
-                    <div class="text-xl">{{ counts.total }}</div>
-                </div>
                 <div class="min-w-[6rem] flex-1 rounded border p-2 text-center">
                     <div class="text-sm">Pending</div>
                     <div class="text-xl">{{ counts.pending }}</div>
@@ -125,15 +124,8 @@ onMounted(async () => {
                 </div>
             </div>
 
-            <div class="flex items-center gap-2">
-                <label>Status:</label>
-                <select v-model="statusFilter" class="rounded border px-2 py-1 text-sm">
-                    <option value="">All</option>
-                    <option value="pending">Pending</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="done">Done</option>
-                </select>
-                <button class="rounded bg-blue-500 px-3 py-1 text-white" @click="fetchTasks">Apply</button>
+            <div>
+                <button class="rounded bg-blue-500 px-3 py-1 text-white" @click="loadAll">Load All Tasks</button>
             </div>
 
             <div class="grid gap-4 md:grid-cols-2">
