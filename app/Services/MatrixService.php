@@ -38,8 +38,6 @@ class MatrixService {
         $response = $this->sendRequest($url, [], 'GET');
         Log::info($response->json());
 
-        if(!$response) return false;
-
         return $response->json('user_id');
     }
 
