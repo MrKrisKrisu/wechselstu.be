@@ -52,6 +52,12 @@ const nextCursor = ref<string | null>(null);
 const prevCursor = ref<string | null>(null);
 const statusFilter = ref<string>('pending,in_progress'); // Default filter to pending and in_progress
 
+const statuses: Array<{ value: Task['status']; label: string; color: string }> = [
+    { value: 'pending', label: 'Pending', color: 'yellow-500' },
+    { value: 'in_progress', label: 'In Progress', color: 'blue-500' },
+    { value: 'done', label: 'Done', color: 'green-500' },
+];
+
 const formatDetails = (task: ApiTask): string =>
     task.type === 'change_request' ? task.change_request_items.map((i) => `${i.denomination} cent × ${i.quantity}`).join(', ') : (task.notes ?? '');
 
@@ -164,25 +170,13 @@ onMounted(async () => {
                     <div class="mt-1 text-sm">{{ task.details }}</div>
                     <div class="mt-3 flex flex-wrap gap-2">
                         <button
-                            :class="task.status === 'pending' ? 'bg-yellow-500' : 'bg-gray-500'"
+                            v-for="s in statuses"
+                            :key="s.value"
+                            :class="task.status === s.value ? `bg-${s.color}` : 'bg-gray-500'"
                             class="flex-1 rounded px-3 py-2 text-white"
-                            @click="onStatusChange(task, 'pending')"
+                            @click="onStatusChange(task, s.value)"
                         >
-                            Pending
-                        </button>
-                        <button
-                            :class="task.status === 'in_progress' ? 'bg-blue-500' : 'bg-gray-500'"
-                            class="flex-1 rounded px-3 py-2 text-white"
-                            @click="onStatusChange(task, 'in_progress')"
-                        >
-                            In Progress
-                        </button>
-                        <button
-                            :class="task.status === 'done' ? 'bg-green-500' : 'bg-gray-500'"
-                            class="flex-1 rounded px-3 py-2 text-white"
-                            @click="onStatusChange(task, 'done')"
-                        >
-                            Done
+                            {{ s.label }}
                         </button>
                     </div>
 
