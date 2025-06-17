@@ -31,32 +31,26 @@ class MatrixService {
         return !empty($this->homeserverUrl) && !empty($this->roomId) && !empty($this->accessToken);
     }
 
-    public function sendNewMessage(string $message): string|false {
+    public function whoAmI(): string|bool {
         if(!$this->isConfigured()) return false;
 
-        $url     = $this->buildUrl('m.room.message');
-        $payload = [
-            'msgtype' => 'm.notice',
-            'body'    => $message,
-        ];
+        $url      = "{$this->homeserverUrl}/_matrix/client/v3/account/whoami";
+        $response = $this->sendRequest($url, [], 'GET');
+        Log::info($response->json());
 
-        $response = $this->sendRequest($url, $payload);
         if(!$response) return false;
 
-        return $response->json('event_id');
+        return $response->json('user_id');
     }
 
-    private function buildUrl(string $type): string {
-        $txnId         = Str::uuid();
-        $encodedRoomId = urlencode($this->roomId);
-        return "{$this->homeserverUrl}/_matrix/client/v3/rooms/{$encodedRoomId}/send/{$type}/{$txnId}";
-    }
-
-    private function sendRequest(string $url, array $payload): ?Response {
+    private function sendRequest(string $url, array $payload, string $method = 'PUT'): ?Response {
         try {
             $response = Http::withToken($this->accessToken)
                             ->timeout(5)
-                            ->put($url, $payload);
+                            ->withHeaders(['Content-Type' => 'application/json'])
+                            ->send($method, $url, [
+                                'json' => $payload,
+                            ]);
 
             if($response->failed()) {
                 Log::error('Matrix API request failed', [
@@ -78,8 +72,29 @@ class MatrixService {
         }
     }
 
-    public function setEmojiReactionToMessage(string $eventId, string $emoji): void {
-        if(!$this->isConfigured()) return;
+    public function sendNewMessage(string $message): string|false {
+        if(!$this->isConfigured()) return false;
+
+        $url     = $this->buildUrl('m.room.message');
+        $payload = [
+            'msgtype' => 'm.notice',
+            'body'    => $message,
+        ];
+
+        $response = $this->sendRequest($url, $payload);
+        if(!$response) return false;
+
+        return $response->json('event_id');
+    }
+
+    private function buildUrl(string $type): string {
+        $txnId         = Str::uuid();
+        $encodedRoomId = urlencode($this->roomId);
+        return "{$this->homeserverUrl}/_matrix/client/v3/rooms/{$encodedRoomId}/send/{$type}/{$txnId}";
+    }
+
+    public function setEmojiReactionToMessage(string $eventId, string $emoji): mixed {
+        if(!$this->isConfigured()) return false;
 
         $url     = $this->buildUrl('m.reaction');
         $payload = [
@@ -90,7 +105,8 @@ class MatrixService {
             ],
         ];
 
-        $this->sendRequest($url, $payload);
+        $response = $this->sendRequest($url, $payload);
+        return $response->json('event_id');
     }
 
     public function updateMessage(string $eventId, string $newMessage): bool {

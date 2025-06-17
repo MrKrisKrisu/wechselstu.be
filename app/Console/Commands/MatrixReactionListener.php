@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class MatrixReactionListener extends Command {
-    protected $signature   = 'matrix:listen-reactions {--count=1} {--pause=500}';
-    protected $description = 'Listens for Matrix emoji reactions and updates task states accordingly';
-
+    const WHO_AM_I_CACHE_KEY = 'matrix_who_am_i';
+    protected             $signature   = 'matrix:listen-reactions {--count=1} {--pause=500}';
+    protected             $description = 'Listens for Matrix emoji reactions and updates task states accordingly';
     private MatrixService $matrixService;
 
     public function __construct(MatrixService $matrixService) {
@@ -24,6 +24,8 @@ class MatrixReactionListener extends Command {
         $count   = (int)$this->option('count');
         $pauseMs = (int)$this->option('pause');
 
+        $this->cacheWhoAmI();
+
         for($run = 0; $run < $count; $run++) {
             $this->runSyncCycle();
             usleep($pauseMs * 1000);
@@ -31,7 +33,14 @@ class MatrixReactionListener extends Command {
         return 0;
     }
 
-    private function runSyncCycle() {
+    private function cacheWhoAmI(): void {
+        $matrix = new MatrixService();
+        $userId = $matrix->whoAmI();
+        Cache::remember(self::WHO_AM_I_CACHE_KEY, now()->addDay(), fn() => $userId);
+        $this->info('Current user ID is: ' . $userId);
+    }
+
+    private function runSyncCycle(): int {
         $this->info('Running one Matrix sync cycle...');
         $since = Cache::get('matrix_sync_since');
 
@@ -60,8 +69,13 @@ class MatrixReactionListener extends Command {
         return 0;
     }
 
-
     private function handleReactionEvent(array $event): void {
+        $currentUser = Cache::get(self::WHO_AM_I_CACHE_KEY);
+        if($event['sender'] === $currentUser) {
+            $this->info("Ignoring reaction from another user: {$event['sender']}");
+            return;
+        }
+
         $reactionEventId = $event['event_id'] ?? null;
         if(!$reactionEventId) return;
         $cacheKey = 'matrix_reaction_processed_' . $reactionEventId;
