@@ -9,10 +9,20 @@ use App\Models\CashRegister;
 use App\Models\ChangeRequestItem;
 use App\Models\WorkOrder;
 use App\Services\MatrixService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class PublicWorkOrderController extends Controller {
+
+    public function status(string $cashRegisterId): JsonResponse {
+        $workOrder = WorkOrder::where('cash_register_id', $cashRegisterId)
+                              ->whereIn('status', [WorkOrderStatus::PENDING, WorkOrderStatus::IN_PROGRESS])
+                              ->first();
+        return response()->json([
+                                    'exists' => $workOrder !== null,
+                                ]);
+    }
 
     public function store(Request $request, string $cashRegisterId): WorkOrderResource {
         $token = $request->query('token');
@@ -22,6 +32,15 @@ class PublicWorkOrderController extends Controller {
         $cashRegister = CashRegister::where('id', $cashRegisterId)
                                     ->where('token', $token)
                                     ->firstOrFail();
+
+        // Check for existing work orders
+        $existingWorkOrder = $cashRegister->workOrders()
+                                          ->whereIn('status', [WorkOrderStatus::PENDING, WorkOrderStatus::IN_PROGRESS])
+                                          ->first();
+
+        if($existingWorkOrder) {
+            abort(409, 'There is already an active request for this register. Please call 2274 (CASH) via DECT if you need assistance.');
+        }
 
         $data = $request->validate([
                                        'type'                 => ['required', Rule::enum(WorkOrderType::class)],

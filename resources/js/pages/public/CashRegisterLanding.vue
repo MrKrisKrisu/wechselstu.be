@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import axios from 'axios';
-import { reactive, ref } from 'vue';
+import { onMounted, reactive, ref } from 'vue';
 
 const props = defineProps<{
     cashRegister: {
@@ -30,6 +30,20 @@ const form = reactive({
 const submitting = ref(false);
 const submitted = ref(false);
 const error = ref<string | null>(null);
+const hasActiveWorkOrder = ref(false);
+
+onMounted(async () => {
+    try {
+        const response = await axios.get(`/api/cash-registers/${props.cashRegister.id}/status?token=${token.value}`);
+        if (response.data.exists) {
+            hasActiveWorkOrder.value = true;
+            error.value = 'There is already an active request for this register. In urgent cases, please call GELD via DECT.';
+        }
+    } catch (e) {
+        console.error(e);
+        error.value = 'Unable to check current work order status.';
+    }
+});
 
 function increment(item: (typeof form.changeItems)[number]) {
     item.quantity++;
@@ -60,9 +74,13 @@ async function submitRequest(type: 'overflow' | 'change_request') {
     try {
         await axios.post(`${url}?token=${token.value}`, payload);
         submitted.value = true;
-    } catch (e) {
+    } catch (e: any) {
         console.error(e);
-        error.value = 'An error occurred while submitting the request.';
+        if (e.response && e.response.status === 409) {
+            error.value = e.response.data.message ?? 'There is already an active request. Please call 2274 (CASH) via DECT.';
+        } else {
+            error.value = 'An error occurred while submitting the request.';
+        }
     }
 }
 
@@ -93,7 +111,9 @@ async function submit() {
                 ❓ For questions or issues, please call DECT <strong>2274 (CASH)</strong>.
             </p>
 
-            <template v-if="submitted">
+            <div v-if="error" class="mb-4 text-center text-sm font-semibold text-red-600">{{ error }}</div>
+
+            <template v-else-if="submitted">
                 <div class="text-center text-xl font-semibold text-green-600">✅ Request was successfully submitted.</div>
             </template>
 

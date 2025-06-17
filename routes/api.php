@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Route;
 /**
  * Public Routes (No authentication, token via URL)
  */
+Route::get('/cash-registers/{cashRegisterId}/status',
+           [PublicWorkOrderController::class, 'status']
+);
 Route::post(
     '/cash-registers/{cashRegisterId}/work-orders',
     [PublicWorkOrderController::class, 'store']
