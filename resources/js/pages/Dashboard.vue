@@ -156,11 +156,6 @@ onMounted(async () => {
                             Done
                         </button>
                     </div>
-                    <div class="mt-2 text-sm">
-                        <a :href="`/cash-registers/${task.registerId}/${task.registerToken}`" class="text-blue-400 underline" target="_blank">
-                            View public page
-                        </a>
-                    </div>
                 </div>
             </div>
 
