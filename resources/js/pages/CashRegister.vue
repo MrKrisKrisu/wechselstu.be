@@ -2,6 +2,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import axios from 'axios';
+import QRCode from 'qrcode';
 import { onMounted, ref } from 'vue';
 
 interface CashRegister {
@@ -55,6 +56,22 @@ const resetToken = async (register: CashRegister) => {
     }
 };
 
+const generateQrCode = async (register: CashRegister) => {
+    const link = `${window.location.origin}/cash-registers/${register.id}/${register.token}`;
+    try {
+        const dataUrl = await QRCode.toDataURL(link, { type: 'image/png', width: 512, margin: 1 });
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = `cash-register-${register.id}-qr.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    } catch (e) {
+        console.error(e);
+        error.value = 'Failed to generate QR code.';
+    }
+};
+
 onMounted(() => {
     fetchRegisters();
 });
@@ -96,14 +113,23 @@ onMounted(() => {
                         </td>
                         <td class="px-4 py-2 font-mono text-sm text-gray-700 dark:text-gray-200">{{ register.token }}</td>
                         <td class="px-4 py-2">
-                            <a
-                                :href="`/cash-registers/${register.id}/${register.token}`"
-                                class="text-sm text-blue-600 hover:underline dark:text-blue-400"
-                                target="_blank"
-                            >
-                                Open Public Page
-                            </a>
+                            <div class="flex flex-wrap gap-2">
+                                <a
+                                    :href="`/cash-registers/${register.id}/${register.token}`"
+                                    class="rounded bg-blue-600 px-3 py-1 text-xs text-white hover:bg-blue-700"
+                                    target="_blank"
+                                >
+                                    Public Page
+                                </a>
+                                <button
+                                    class="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700"
+                                    @click="generateQrCode(register)"
+                                >
+                                    Generate QR Code
+                                </button>
+                            </div>
                         </td>
+
                         <td class="px-4 py-2">
                             <button class="rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600" @click="resetToken(register)">
                                 Reset Token
