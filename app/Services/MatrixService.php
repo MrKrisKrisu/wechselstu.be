@@ -9,9 +9,9 @@ use Illuminate\Support\Str;
 use Throwable;
 
 class MatrixService {
-    private string $homeserverUrl;
-    private string $roomId;
-    private string $accessToken;
+    private ?string $homeserverUrl;
+    private ?string $roomId;
+    private ?string $accessToken;
 
     public function __construct() {
         $this->homeserverUrl = rtrim((string)config('services.matrix.homeserver_url'), '/');
