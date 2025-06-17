@@ -9,9 +9,9 @@ use Illuminate\Support\Str;
 use Throwable;
 
 class MatrixService {
-    private string $homeserverUrl;
-    private string $roomId;
-    private string $accessToken;
+    private ?string $homeserverUrl;
+    private ?string $roomId;
+    private ?string $accessToken;
 
     public function __construct() {
         $this->homeserverUrl = rtrim((string)config('services.matrix.homeserver_url'), '/');
@@ -113,5 +113,33 @@ class MatrixService {
         ];
 
         return (bool)$this->sendRequest($url, $payload);
+    }
+
+    public function getHomeserverUrl(): string {
+        return $this->homeserverUrl;
+    }
+
+    public function sendSyncRequest(string $url): ?Response {
+        try {
+            $response = Http::withToken($this->accessToken)
+                            ->timeout(35)
+                            ->get($url);
+
+            if($response->failed()) {
+                Log::warning('Matrix sync failed', [
+                    'url'    => $url,
+                    'status' => $response->status(),
+                    'body'   => $response->body(),
+                ]);
+                return null;
+            }
+
+            return $response;
+        } catch(Throwable $e) {
+            Log::error('Matrix sync threw an exception', [
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
     }
 }
