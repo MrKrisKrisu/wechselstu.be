@@ -124,9 +124,9 @@ onMounted(async () => {
                 </div>
             </div>
 
-            <div>
-                <button class="rounded bg-blue-500 px-3 py-1 text-white" @click="loadAll">Load All Tasks</button>
-            </div>
+            <button class="rounded bg-gray-500 px-3 py-1 text-white" @click="loadAll">Load All Tasks</button>
+
+            <div v-if="!loading && tasks.length === 0" class="mt-6 text-center text-2xl text-green-600">🎉 No open tasks 🎉</div>
 
             <div class="grid gap-4 md:grid-cols-2">
                 <div v-for="task in tasks" :key="task.id" class="rounded border p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
@@ -166,6 +166,7 @@ onMounted(async () => {
 
             <div class="mt-4 flex justify-between">
                 <button
+                    v-if="prevCursor"
                     :disabled="!prevCursor || loading"
                     class="rounded border px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
                     @click="fetchTasks(prevCursor)"
@@ -173,6 +174,7 @@ onMounted(async () => {
                     Previous
                 </button>
                 <button
+                    v-if="nextCursor"
                     :disabled="!nextCursor || loading"
                     class="rounded border px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
                     @click="fetchTasks(nextCursor)"
