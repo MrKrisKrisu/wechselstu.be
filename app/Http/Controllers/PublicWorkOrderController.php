@@ -39,7 +39,7 @@ class PublicWorkOrderController extends Controller {
                                           ->first();
 
         if($existingWorkOrder) {
-            abort(409, 'There is already an active request for this register. Please call 2274 (CASH) via DECT if you need assistance.');
+            abort(409, 'There is already an active request for this register. Please call 4353 (GELD) via DECT if you need assistance.');
         }
 
         $data = $request->validate([

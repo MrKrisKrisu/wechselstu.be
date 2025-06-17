@@ -37,7 +37,7 @@ onMounted(async () => {
         const response = await axios.get(`/api/cash-registers/${props.cashRegister.id}/status?token=${token.value}`);
         if (response.data.exists) {
             hasActiveWorkOrder.value = true;
-            error.value = 'There is already an active request for this register. Please call 2274 (CASH) via DECT if you need assistance.';
+            error.value = 'There is already an active request for this register. Please call 4353 (GELD) via DECT if you need assistance.';
         }
     } catch (e) {
         console.error(e);
@@ -108,7 +108,7 @@ async function submit() {
             </h1>
 
             <p v-if="!error" class="mb-4 text-center text-sm text-gray-600 dark:text-gray-300">
-                ❓ For questions or issues, please call DECT <strong>2274 (CASH)</strong>.
+                ❓ For questions or issues, please call DECT <strong>4353 (GELD)</strong>.
             </p>
 
             <div v-if="error" class="mb-4 text-center text-sm font-semibold text-red-600">{{ error }}</div>
