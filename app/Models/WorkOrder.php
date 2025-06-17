@@ -12,11 +12,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 #[ObservedBy([WorkOrderObserver::class])]
 class WorkOrder extends Model {
     /** @use HasFactory<WorkOrderFactory> */
-    use HasFactory, HasUuids;
+    use HasFactory, HasUuids, LogsActivity;
 
     public    $incrementing = false;
     protected $keyType      = 'string';
@@ -38,5 +40,9 @@ class WorkOrder extends Model {
      */
     public function changeRequestItems(): HasMany {
         return $this->hasMany(ChangeRequestItem::class);
+    }
+
+    public function getActivitylogOptions(): LogOptions {
+        return LogOptions::defaults()->logOnlyDirty()->logOnly(['status']);
     }
 }

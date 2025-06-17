@@ -15,6 +15,7 @@ class WorkOrderResource extends JsonResource {
             'notes'                => $this->notes,
             'cash_register'        => new CashRegisterResource($this->whenLoaded('cashRegister')),
             'change_request_items' => ChangeRequestItemResource::collection($this->whenLoaded('changeRequestItems')),
+            'activities'           => WorkOrderActivityResource::collection($this->whenLoaded('activities')),
             'created_at'           => $this->created_at->toIso8601String(),
         ];
     }

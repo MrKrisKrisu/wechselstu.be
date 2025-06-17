@@ -5,14 +5,14 @@ import { Head } from '@inertiajs/vue3';
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
 
-type Task = {
-    id: string;
-    register: string;
-    registerId: string;
-    registerToken: string;
-    type: 'overflow' | 'change_request';
-    details: string;
-    status: 'pending' | 'in_progress' | 'done';
+type ApiActivity = {
+    description: string;
+    status: {
+        before: string | null;
+        after: string;
+    };
+    caused_by: { id: number; name: string } | null;
+    created_at: string;
 };
 
 type ApiTask = {
@@ -22,7 +22,19 @@ type ApiTask = {
     notes: string | null;
     cash_register: { id: string; name: string; token: string };
     change_request_items: Array<{ denomination: number; quantity: number }>;
+    activities: ApiActivity[];
     created_at: string;
+};
+
+type Task = {
+    id: string;
+    register: string;
+    registerId: string;
+    registerToken: string;
+    type: 'overflow' | 'change_request';
+    details: string;
+    status: 'pending' | 'in_progress' | 'done';
+    activities: ApiActivity[];
 };
 
 type CountResponse = { total: number; pending: number; in_progress: number; done: number };
@@ -68,6 +80,7 @@ const fetchTasks = async (cursor: string | null = null) => {
             type: item.type,
             details: formatDetails(item),
             status: item.status,
+            activities: item.activities.filter((a) => a && Object.keys(a).length > 0),
         }));
         nextCursor.value = meta.next_cursor;
         prevCursor.value = meta.prev_cursor;
@@ -97,6 +110,22 @@ const onStatusChange = (task: Task, newStatus: Task['status']) => {
 const loadAll = async () => {
     statusFilter.value = '';
     await fetchTasks();
+};
+
+const timeAgo = (isoDate: string): string => {
+    const now = new Date();
+    const date = new Date(isoDate);
+    const diffMs = now.getTime() - date.getTime();
+
+    const seconds = Math.floor(diffMs / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) return `${days} day${days > 1 ? 's' : ''} ago`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+    if (minutes > 0) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+    return `${seconds} second${seconds > 1 ? 's' : ''} ago`;
 };
 
 onMounted(async () => {
@@ -155,6 +184,25 @@ onMounted(async () => {
                         >
                             Done
                         </button>
+                    </div>
+
+                    <div class="mt-3 text-sm text-gray-500">
+                        <ul class="ml-2 list-disc">
+                            <li v-for="(activity, idx) in task.activities" :key="idx">
+                                <small>
+                                    <span v-if="activity.description === 'created'"> created </span>
+                                    <span v-else-if="activity.caused_by">{{ activity.caused_by.name }}&nbsp;</span>
+                                    <span>{{ timeAgo(activity.created_at) }}</span>
+                                    <span
+                                        v-if="
+                                            activity.status && activity.status.before !== activity.status.after && activity.description !== 'created'
+                                        "
+                                    >
+                                        ({{ activity.status.before ?? '' }} → {{ activity.status.after }})
+                                    </span>
+                                </small>
+                            </li>
+                        </ul>
                     </div>
                 </div>
             </div>

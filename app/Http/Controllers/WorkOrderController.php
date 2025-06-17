@@ -12,7 +12,7 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 class WorkOrderController extends Controller {
 
     public function index(Request $request): AnonymousResourceCollection {
-        $query = WorkOrder::with(['changeRequestItems', 'cashRegister'])
+        $query = WorkOrder::with(['changeRequestItems', 'cashRegister', 'activities'])
                           ->orderBy('status');
 
         if($request->filled('status')) {
