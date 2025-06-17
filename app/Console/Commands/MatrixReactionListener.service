@@ -1,0 +1,13 @@
+[Unit]
+Description=Matrix Reaction Listener
+After=network.target
+
+[Service]
+ExecStart=php artisan matrix:listen-reactions --count=100 --pause=1000
+WorkingDirectory=/var/www/html
+User=www-data
+Group=www-data
+Restart=always
+RestartSec=1
+StandardOutput=append:/var/log/matrix-reaction-listener.log
+StandardError=append:/var/log/matrix-reaction-listener-error.log

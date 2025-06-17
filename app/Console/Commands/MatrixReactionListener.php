@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class MatrixReactionListener extends Command {
-    protected $signature   = 'matrix:listen-reactions';
+    protected $signature   = 'matrix:listen-reactions {--count=1} {--pause=500}';
     protected $description = 'Listens for Matrix emoji reactions and updates task states accordingly';
 
     private MatrixService $matrixService;
@@ -21,35 +21,45 @@ class MatrixReactionListener extends Command {
     }
 
     public function handle(): int {
-        $this->info('Starting Matrix Reaction Listener...');
-        $since = null;
+        $count   = (int)$this->option('count');
+        $pauseMs = (int)$this->option('pause');
 
-        while(true) { //TODO: I'm currently not happy here
-            $url = $this->matrixService->getHomeserverUrl() . '/_matrix/client/v3/sync?timeout=30000';
-            if($since) {
-                $url .= '&since=' . urlencode($since);
-            }
+        for($run = 0; $run < $count; $run++) {
+            $this->runSyncCycle();
+            usleep($pauseMs * 1000);
+        }
+        return 0;
+    }
 
-            $response = $this->matrixService->sendSyncRequest($url);
-            if(!$response) {
-                $this->warn('Matrix sync failed. Retrying...');
-                continue;
-            }
+    private function runSyncCycle() {
+        $this->info('Running one Matrix sync cycle...');
+        $since = Cache::get('matrix_sync_since');
 
-            $data  = $response->json();
-            $since = $data['next_batch'] ?? null;
+        $url = $this->matrixService->getHomeserverUrl() . '/_matrix/client/v3/sync?timeout=1000';
+        if($since) {
+            $url .= '&since=' . urlencode($since);
+        }
 
-            foreach(($data['rooms']['join'] ?? []) as $room) {
-                foreach(($room['timeline']['events'] ?? []) as $event) {
-                    if(($event['type'] ?? '') === 'm.reaction') {
-                        $this->handleReactionEvent($event);
-                    }
+        $response = $this->matrixService->sendSyncRequest($url);
+        if(!$response) {
+            $this->warn('Matrix sync failed.');
+            return 1;
+        }
+
+        $data = $response->json();
+        Cache::put('matrix_sync_since', $data['next_batch'] ?? null);
+
+        foreach(($data['rooms']['join'] ?? []) as $room) {
+            foreach(($room['timeline']['events'] ?? []) as $event) {
+                if(($event['type'] ?? '') === 'm.reaction') {
+                    $this->handleReactionEvent($event);
                 }
             }
         }
 
         return 0;
     }
+
 
     private function handleReactionEvent(array $event): void {
         $reactionEventId = $event['event_id'] ?? null;
