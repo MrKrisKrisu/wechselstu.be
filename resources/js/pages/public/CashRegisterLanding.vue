@@ -90,7 +90,7 @@ async function submit() {
             </h1>
 
             <p class="mb-4 text-center text-sm text-gray-600 dark:text-gray-300">
-                ❓ For questions or issues, please call DECT <strong>4354</strong>.
+                ❓ For questions or issues, please call DECT <strong>2274 (CASH)</strong>.
             </p>
 
             <template v-if="submitted">
