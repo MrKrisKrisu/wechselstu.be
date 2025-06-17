@@ -77,12 +77,7 @@ class MatrixReactionListener extends Command {
         $targetEventId = $relates['event_id'] ?? '';
         $emoji         = $relates['key'] ?? '';
 
-        $status = match ($emoji) {
-            '✅️'    => WorkOrderStatus::DONE->value,
-            '⏳️'    => WorkOrderStatus::IN_PROGRESS->value,
-            '❌️'    => WorkOrderStatus::PENDING->value,
-            default => null,
-        };
+        $status = WorkOrderStatus::getStatusByEmoji($emoji);
 
         if(!$status) {
             $this->info("Ignored emoji: {$emoji}");
@@ -99,7 +94,7 @@ class MatrixReactionListener extends Command {
         $workOrder->status = $status;
         $workOrder->save();
 
-        $this->info("Updated task {$workOrder->id} to status '{$status}' via emoji '{$emoji}'");
+        $this->info("Updated task {$workOrder->id} to status '{$status->value}' via emoji '{$emoji}'");
         Log::info('Task status updated via emoji reaction', [
             'task_id'    => $workOrder->id,
             'event_id'   => $targetEventId,

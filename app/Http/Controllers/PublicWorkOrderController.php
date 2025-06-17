@@ -71,6 +71,9 @@ class PublicWorkOrderController extends Controller {
 
         $matrix  = new MatrixService();
         $eventId = $matrix->sendNewMessage($this->getMessageForWorkOrder($workOrder));
+        foreach(WorkOrderStatus::cases() as $case) {
+            $matrix->setEmojiReactionToMessage($eventId, $case->getEmoji());
+        }
         $workOrder->update(['event_id' => $eventId]);
 
         $workOrder->load('changeRequestItems');
