@@ -37,7 +37,7 @@ onMounted(async () => {
         const response = await axios.get(`/api/cash-registers/${props.cashRegister.id}/status?token=${token.value}`);
         if (response.data.exists) {
             hasActiveWorkOrder.value = true;
-            error.value = 'There is already an active request for this register. In urgent cases, please call GELD via DECT.';
+            error.value = 'There is already an active request for this register. Please call 2274 (CASH) via DECT if you need assistance.';
         }
     } catch (e) {
         console.error(e);
@@ -107,7 +107,7 @@ async function submit() {
                 {{ cashRegister.name }}
             </h1>
 
-            <p class="mb-4 text-center text-sm text-gray-600 dark:text-gray-300">
+            <p v-if="!error" class="mb-4 text-center text-sm text-gray-600 dark:text-gray-300">
                 ❓ For questions or issues, please call DECT <strong>2274 (CASH)</strong>.
             </p>
 
