@@ -17,6 +17,8 @@ Route::post(
     [PublicWorkOrderController::class, 'store']
 );
 
+Route::get('/register-groups/{group_id}', [RegisterGroupController::class, 'registers']);
+
 /**
  * Admin Routes (Protected by auth:api)
  */

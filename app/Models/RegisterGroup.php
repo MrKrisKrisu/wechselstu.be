@@ -20,4 +20,8 @@ class RegisterGroup extends Model {
         'name'     => 'string',
         'password' => 'string',
     ];
+
+    public function cashRegisters() {
+        return $this->hasMany(CashRegister::class, 'register_group_id', 'id');
+    }
 }
