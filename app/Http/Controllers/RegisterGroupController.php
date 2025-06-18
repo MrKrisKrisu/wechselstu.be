@@ -6,16 +6,24 @@ use App\Enum\WorkOrderType;
 use App\Http\Resources\RegisterGroupResource;
 use App\Models\RegisterGroup;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\Hash;
 
 class RegisterGroupController extends Controller {
     public function index(): AnonymousResourceCollection {
         return RegisterGroupResource::collection(RegisterGroup::all());
     }
 
-    public function registers(string $groupId): JsonResponse {
-        //TODO: „auth”
-        $group     = RegisterGroup::findOrFail($groupId);
+    public function registers(Request $request, string $groupId): JsonResponse {
+        $group = RegisterGroup::findOrFail($groupId);
+
+        // Quick and dirty auth: it's also not a fancy password for each group. Hashed in the database.
+        $password = $request->get('password');
+        if(!$password || !Hash::check($password, $group->password)) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
         $registers = $group->cashRegisters()
                            ->with('registerGroup')
                            ->get()
