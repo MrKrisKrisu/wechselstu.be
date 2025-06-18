@@ -58,9 +58,12 @@ const statuses: Array<{ value: Task['status']; label: string; color: string }> =
     { value: 'done', label: 'Done', color: 'green-500' },
 ];
 
-const formatDetails = (task: ApiTask): string =>
-    task.type === 'change_request' ? task.change_request_items.map((i) => `${i.denomination} cent × ${i.quantity}`).join(', ') : (task.notes ?? '');
-
+const formatDetails = (task: ApiTask): string => {
+    if (task.type === 'change_request') {
+        return task.change_request_items.map((i) => `${i.quantity} x ${(i.denomination / 100).toFixed(2).replace('.', ',')} €`).join('\n');
+    }
+    return task.notes ?? '';
+};
 const fetchCounts = async () => {
     try {
         const response = await axios.get<CountResponse>('/api/work-orders/count');
@@ -171,7 +174,9 @@ onMounted(async () => {
                 <div v-for="task in tasks" :key="task.id" class="rounded border p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <div class="font-semibold">{{ task.register }}</div>
                     <div class="capitalize">{{ task.type === 'change_request' ? 'Change Request' : 'Overflow' }}</div>
-                    <div class="mt-1 text-sm">{{ task.details }}</div>
+                    <div class="mt-1 text-sm">
+                        <pre class="whitespace-pre-wrap">{{ task.details }}</pre>
+                    </div>
                     <div class="mt-3 flex flex-wrap gap-2">
                         <button
                             v-for="s in statuses"
