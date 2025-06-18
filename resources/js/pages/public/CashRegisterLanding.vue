@@ -113,7 +113,11 @@ async function submit() {
             </p>
 
             <template v-if="submitted">
-                <div class="text-center text-xl font-semibold text-green-600">✅ Request was successfully submitted.</div>
+                <div class="text-center text-xl font-semibold text-green-600">
+                    ✅ Request was successfully submitted.
+
+                    <img alt="Success" class="mx-auto mt-4" src="/success.gif" />
+                </div>
             </template>
 
             <template v-else>
