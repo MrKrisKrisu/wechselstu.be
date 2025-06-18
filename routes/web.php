@@ -12,7 +12,7 @@ Route::get('/', function() {
 
 Route::get('/register-group', function() {
     return Inertia::render('public/RegisterGroup');
-})->name('home');
+})->name('register-group');
 
 Route::get('/dashboard', function() {
     return Inertia::render('Dashboard');
