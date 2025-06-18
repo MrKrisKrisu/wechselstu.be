@@ -15,13 +15,27 @@ use Illuminate\Validation\Rule;
 
 class PublicWorkOrderController extends Controller {
 
+    const MSG_ERROR_ACTIVE_REQUEST = 'There is already an active request for this register. Please call 4353 (GELD) via DECT if you need assistance.';
+
     public function status(string $cashRegisterId): JsonResponse {
-        $workOrder = WorkOrder::where('cash_register_id', $cashRegisterId)
-                              ->whereIn('status', [WorkOrderStatus::PENDING, WorkOrderStatus::IN_PROGRESS])
-                              ->first();
         return response()->json([
-                                    'exists' => $workOrder !== null,
+                                    'overflow_pending'       => self::hasPendingOverflowOrder($cashRegisterId),
+                                    'change_request_pending' => self::hasPendingChangeRequest($cashRegisterId),
                                 ]);
+    }
+
+    public static function hasPendingOverflowOrder(string $cashRegisterId): bool {
+        return WorkOrder::where('cash_register_id', $cashRegisterId)
+                        ->where('type', WorkOrderType::OVERFLOW->value)
+                        ->whereIn('status', [WorkOrderStatus::PENDING, WorkOrderStatus::IN_PROGRESS])
+                        ->exists();
+    }
+
+    public static function hasPendingChangeRequest(string $cashRegisterId): bool {
+        return WorkOrder::where('cash_register_id', $cashRegisterId)
+                        ->where('type', WorkOrderType::CHANGE_REQUEST->value)
+                        ->whereIn('status', [WorkOrderStatus::PENDING, WorkOrderStatus::IN_PROGRESS])
+                        ->exists();
     }
 
     public function store(Request $request, string $cashRegisterId): WorkOrderResource {
@@ -33,15 +47,6 @@ class PublicWorkOrderController extends Controller {
                                     ->where('token', $token)
                                     ->firstOrFail();
 
-        // Check for existing work orders
-        $existingWorkOrder = $cashRegister->workOrders()
-                                          ->whereIn('status', [WorkOrderStatus::PENDING, WorkOrderStatus::IN_PROGRESS])
-                                          ->first();
-
-        if($existingWorkOrder) {
-            abort(409, 'There is already an active request for this register. Please call 4353 (GELD) via DECT if you need assistance.');
-        }
-
         $data = $request->validate([
                                        'type'                 => ['required', Rule::enum(WorkOrderType::class)],
                                        'notes'                => ['nullable', 'string'],
@@ -50,9 +55,18 @@ class PublicWorkOrderController extends Controller {
                                        'items.*.quantity'     => ['required_with:items', 'integer', 'min:1'],
                                    ]);
 
+        $type = WorkOrderType::from($data['type']);
+
+        if(
+            ($type === WorkOrderType::CHANGE_REQUEST && self::hasPendingChangeRequest($cashRegisterId))
+            || ($type === WorkOrderType::OVERFLOW && self::hasPendingOverflowOrder($cashRegisterId))
+        ) {
+            abort(409, self::MSG_ERROR_ACTIVE_REQUEST);
+        }
+
         $workOrder = WorkOrder::create([
                                            'cash_register_id' => $cashRegister->id,
-                                           'type'             => $data['type'],
+                                           'type'             => $type->value,
                                            'status'           => WorkOrderStatus::PENDING,
                                            'notes'            => $data['notes'] ?? null,
                                        ]);

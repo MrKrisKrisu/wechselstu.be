@@ -30,14 +30,15 @@ const form = reactive({
 const submitting = ref(false);
 const submitted = ref(false);
 const error = ref<string | null>(null);
-const hasActiveWorkOrder = ref(false);
+const hasActiveChangeRequest = ref(false);
+const hasActiveOverflowRequest = ref(false);
 
 onMounted(async () => {
     try {
         const response = await axios.get(`/api/cash-registers/${props.cashRegister.id}/status?token=${token.value}`);
-        if (response.data.exists) {
-            hasActiveWorkOrder.value = true;
-            error.value = 'There is already an active request for this register. Please call 4353 (GELD) via DECT if you need assistance.';
+        if (response.data) {
+            hasActiveChangeRequest.value = response.data.change_request_pending;
+            hasActiveOverflowRequest.value = response.data.overflow_pending;
         }
     } catch (e) {
         console.error(e);
@@ -107,13 +108,11 @@ async function submit() {
                 {{ cashRegister.name }}
             </h1>
 
-            <p v-if="!error" class="mb-4 text-center text-sm text-gray-600 dark:text-gray-300">
+            <p class="mb-4 text-center text-sm text-gray-600 dark:text-gray-300">
                 ❓ For questions or issues, please call DECT <strong>4353 (GELD)</strong>.
             </p>
 
-            <div v-if="error" class="mb-4 text-center text-sm font-semibold text-red-600">{{ error }}</div>
-
-            <template v-else-if="submitted">
+            <template v-if="submitted">
                 <div class="text-center text-xl font-semibold text-green-600">✅ Request was successfully submitted.</div>
             </template>
 
@@ -134,8 +133,12 @@ async function submit() {
 
                 <template v-else>
                     <button
-                        :disabled="submitting"
-                        class="mt-3 w-full rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+                        :class="{
+                            'bg-blue-500 hover:bg-blue-700': !hasActiveOverflowRequest,
+                            'bg-gray-500 hover:bg-gray-700': hasActiveOverflowRequest,
+                        }"
+                        :disabled="submitting || hasActiveOverflowRequest"
+                        class="mt-3 w-full rounded px-4 py-2 font-bold text-white"
                         @click="
                             () => {
                                 form.hasOverflow = true;
@@ -144,14 +147,26 @@ async function submit() {
                         "
                     >
                         💸 Cash overflow (needs removal)
+                        <span v-if="hasActiveOverflowRequest" class="ml-2 text-sm font-bold text-green-500">
+                            <br />
+                            There is already an active request.
+                        </span>
                     </button>
-
                     <button
-                        :disabled="submitting"
-                        class="mt-3 w-full rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700"
+                        :class="{
+                            'bg-blue-500 hover:bg-blue-700': !hasActiveChangeRequest,
+                            'bg-gray-500 hover:bg-gray-700': hasActiveChangeRequest,
+                        }"
+                        :disabled="submitting || hasActiveChangeRequest"
+                        class="mt-3 w-full rounded px-4 py-2 font-bold text-white"
                         @click="() => (form.needsChange = !form.needsChange)"
                     >
                         🔁 Change needed
+
+                        <span v-if="hasActiveChangeRequest" class="ml-2 text-sm font-bold text-green-500">
+                            <br />
+                            There is already an active request.
+                        </span>
                     </button>
                 </template>
 
