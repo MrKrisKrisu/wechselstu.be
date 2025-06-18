@@ -36,7 +36,6 @@ class MatrixService {
 
         $url      = "{$this->homeserverUrl}/_matrix/client/v3/account/whoami";
         $response = $this->sendRequest($url, [], 'GET');
-        Log::info($response->json());
 
         return $response->json('user_id');
     }
