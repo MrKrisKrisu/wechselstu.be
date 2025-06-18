@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\CashRegisterResource;
 use App\Models\CashRegister;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Str;
 
 class CashRegisterController extends Controller {
-    public function index(): JsonResponse {
-        return response()->json(CashRegister::all());
+    public function index(): AnonymousResourceCollection {
+        return CashRegisterResource::collection(CashRegister::with(['registerGroup'])->get());
     }
 
     public function store(Request $request): JsonResponse {
@@ -32,12 +34,13 @@ class CashRegisterController extends Controller {
     }
 
     public function update(Request $request, string $id): JsonResponse {
-        $data = $request->validate([
-                                       'name' => ['required', 'string', 'max:255'],
-                                   ]);
+        $validated = $request->validate([
+                                            'name'              => ['nullable', 'string', 'max:255'],
+                                            'register_group_id' => ['nullable', 'exists:register_groups,id'],
+                                        ]);
 
         $register = CashRegister::findOrFail($id);
-        $register->update(['name' => $data['name']]);
+        $register->update($validated);
 
         return response()->json($register);
     }

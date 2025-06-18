@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CashRegisterController;
 use App\Http\Controllers\PublicWorkOrderController;
+use App\Http\Controllers\RegisterGroupController;
 use App\Http\Controllers\WorkOrderController;
 use Illuminate\Support\Facades\Route;
 
@@ -29,4 +30,6 @@ Route::middleware('auth:api')->group(function() {
     Route::post('/cash-registers', [CashRegisterController::class, 'store']);
     Route::put('/cash-registers/{id}', [CashRegisterController::class, 'update']);
     Route::post('/cash-registers/{id}/reset-token', [CashRegisterController::class, 'resetToken']);
+
+    Route::get('/register-groups', [RegisterGroupController::class, 'index']);
 });

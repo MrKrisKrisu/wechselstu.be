@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\CashRegister;
 use App\Models\ChangeRequestItem;
+use App\Models\RegisterGroup;
 use App\Models\User;
 use App\Models\WorkOrder;
 use Illuminate\Database\Seeder;
@@ -17,6 +18,7 @@ class DatabaseSeeder extends Seeder {
                                     'password' => Hash::make('password'),
                                 ]);
 
+        RegisterGroup::factory()->create();
         CashRegister::factory()->count(10)->create();
 
         for($i = 0; $i <= 20; $i++) {

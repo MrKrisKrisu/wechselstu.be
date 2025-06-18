@@ -5,23 +5,40 @@ import axios from 'axios';
 import QRCode from 'qrcode';
 import { onMounted, ref } from 'vue';
 
+interface Group {
+    id: string;
+    name: string;
+}
+
 interface CashRegister {
     id: string;
     name: string;
     token: string;
+    group: Group | null;
 }
 
 const registers = ref<CashRegister[]>([]);
+const groups = ref<Group[]>([]);
 const newName = ref('');
 const error = ref<string | null>(null);
 
 const fetchRegisters = async () => {
     try {
         const res = await axios.get('/api/cash-registers');
-        registers.value = res.data;
+        registers.value = res.data.data;
     } catch (e) {
         console.error(e);
         error.value = 'Failed to load registers.';
+    }
+};
+
+const fetchGroups = async () => {
+    try {
+        const res = await axios.get('/api/register-groups');
+        groups.value = res.data.data;
+    } catch (e) {
+        console.error(e);
+        error.value = 'Failed to load groups.';
     }
 };
 
@@ -43,6 +60,16 @@ const updateRegisterName = async (register: CashRegister) => {
     } catch (e) {
         console.error(e);
         error.value = 'Failed to update name.';
+    }
+};
+
+const updateRegisterGroup = async (register: CashRegister, groupId: string | null) => {
+    try {
+        await axios.put(`/api/cash-registers/${register.id}`, { register_group_id: groupId });
+        register.group = groups.value.find((g) => g.id === groupId) || null;
+    } catch (e) {
+        console.error(e);
+        error.value = 'Failed to update group.';
     }
 };
 
@@ -74,6 +101,7 @@ const generateQrCode = async (register: CashRegister) => {
 
 onMounted(() => {
     fetchRegisters();
+    fetchGroups();
 });
 </script>
 
@@ -97,6 +125,7 @@ onMounted(() => {
                 <thead class="bg-gray-50 dark:bg-gray-700">
                     <tr>
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-300">Name</th>
+                        <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-300">Group</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-300">Token</th>
                         <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase dark:text-gray-300">Link</th>
                         <th class="px-4 py-2"></th>
@@ -110,6 +139,18 @@ onMounted(() => {
                                 class="w-full rounded border px-2 py-1 text-sm dark:bg-gray-800 dark:text-white"
                                 @blur="updateRegisterName(register)"
                             />
+                        </td>
+                        <td class="px-4 py-2">
+                            <select
+                                :value="register.group?.id || ''"
+                                class="w-full rounded border px-2 py-1 text-sm dark:bg-gray-800 dark:text-white"
+                                @change="updateRegisterGroup(register, $event.target.value || null)"
+                            >
+                                <option value="">— No Group —</option>
+                                <option v-for="group in groups" :key="group.id" :value="group.id">
+                                    {{ group.name }}
+                                </option>
+                            </select>
                         </td>
                         <td class="px-4 py-2 font-mono text-sm text-gray-700 dark:text-gray-200">{{ register.token }}</td>
                         <td class="px-4 py-2">
@@ -129,7 +170,6 @@ onMounted(() => {
                                 </button>
                             </div>
                         </td>
-
                         <td class="px-4 py-2">
                             <button class="rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600" @click="resetToken(register)">
                                 Reset Token
@@ -143,7 +183,8 @@ onMounted(() => {
 </template>
 
 <style scoped>
-input:focus {
+input:focus,
+select:focus {
     outline: none;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
 }

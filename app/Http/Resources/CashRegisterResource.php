@@ -12,6 +12,7 @@ class CashRegisterResource extends JsonResource {
             'id'    => $this->id,
             'name'  => $this->name,
             'token' => $this->token,
+            'group' => new RegisterGroupResource($this->whenLoaded('registerGroup')),
         ];
     }
 }
