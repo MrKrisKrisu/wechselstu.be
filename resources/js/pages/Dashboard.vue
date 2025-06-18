@@ -102,6 +102,10 @@ const updateStatus = async (task: Task, newStatus: Task['status']) => {
         await axios.put(`/api/work-orders/${task.id}`, { status: newStatus });
         task.status = newStatus;
         await fetchCounts();
+
+        if (newStatus === 'done') {
+            tasks.value = tasks.value.filter((t) => t.id !== task.id);
+        }
     } catch (error) {
         console.error('Error updating status:', error);
     }
