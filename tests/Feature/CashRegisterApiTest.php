@@ -28,8 +28,7 @@ class CashRegisterApiTest extends TestCase {
         CashRegister::factory()->count(3)->create();
 
         $response = $this->getJson('/api/cash-registers');
-
-        $response->assertOk()->assertJsonCount(3);
+        $response->assertOk()->assertJsonCount(3, 'data');
     }
 
     #[Test]
