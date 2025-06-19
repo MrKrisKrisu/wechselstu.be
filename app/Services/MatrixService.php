@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Exception;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -72,16 +73,24 @@ class MatrixService {
     public function sendNewMessage(string $message): string|false {
         if(!$this->isConfigured()) return false;
 
-        $url     = $this->buildUrl('m.room.message');
-        $payload = [
-            'msgtype' => 'm.notice',
-            'body'    => $message,
-        ];
+        try {
+            $url     = $this->buildUrl('m.room.message');
+            $payload = [
+                'msgtype' => 'm.notice',
+                'body'    => $message,
+            ];
 
-        $response = $this->sendRequest($url, $payload);
-        if(!$response) return false;
+            $response = $this->sendRequest($url, $payload);
+            if(!$response) return false;
 
-        return $response->json('event_id');
+            return $response->json('event_id');
+        } catch(Exception $e) {
+            Log::error('Matrix message request threw an exception.', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return false;
+        }
     }
 
     private function buildUrl(string $type): string {
@@ -93,17 +102,25 @@ class MatrixService {
     public function setEmojiReactionToMessage(string $eventId, string $emoji): mixed {
         if(!$this->isConfigured()) return false;
 
-        $url     = $this->buildUrl('m.reaction');
-        $payload = [
-            'm.relates_to' => [
-                'rel_type' => 'm.annotation',
-                'event_id' => $eventId,
-                'key'      => $emoji,
-            ],
-        ];
+        try {
+            $url     = $this->buildUrl('m.reaction');
+            $payload = [
+                'm.relates_to' => [
+                    'rel_type' => 'm.annotation',
+                    'event_id' => $eventId,
+                    'key'      => $emoji,
+                ],
+            ];
 
-        $response = $this->sendRequest($url, $payload);
-        return $response->json('event_id');
+            $response = $this->sendRequest($url, $payload);
+            return $response->json('event_id');
+        } catch(Throwable $e) {
+            Log::error('Matrix reaction request threw an exception.', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return false;
+        }
     }
 
     public function updateMessage(string $eventId, string $newMessage): bool {
