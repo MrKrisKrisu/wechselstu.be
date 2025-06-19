@@ -29,10 +29,12 @@ const emit = defineEmits(['submitOverflow', 'toggleChangeForm', 'resetForm']);
                 'bg-gray-500 hover:bg-gray-700': hasActiveOverflowRequest || submitting,
             }"
             :disabled="submitting || hasActiveOverflowRequest"
-            class="mt-3 w-full rounded px-4 py-2 font-bold text-white"
+            class="mt-3 mb-5 w-full rounded px-4 py-2 font-bold text-white"
             @click="() => emit('submitOverflow')"
         >
-            💸 Cash overflow (needs removal)
+            <span style="font-size: 60px">💸</span>
+            <br />
+            Cash overflow (needs removal)
             <span v-if="hasActiveOverflowRequest" class="ml-2 text-sm font-bold text-green-500"> <br />There is already an active request. </span>
         </button>
 
@@ -45,7 +47,9 @@ const emit = defineEmits(['submitOverflow', 'toggleChangeForm', 'resetForm']);
             class="mt-3 w-full rounded px-4 py-2 font-bold text-white"
             @click="() => emit('toggleChangeForm')"
         >
-            🔁 Change needed
+            <span style="font-size: 60px">🔁</span>
+            <br />
+            Change needed
             <span v-if="hasActiveChangeRequest" class="ml-2 text-sm font-bold text-green-500"> <br />There is already an active request. </span>
         </button>
 
