@@ -111,7 +111,7 @@ async function submitRequest(register: Register, type: 'overflow') {
     state.error = null;
 
     try {
-        await axios.post(`/api/cash-registers/${register.id}/work-orders?token=${register.token}&password=${encodeURIComponent(password.value)}`, {
+        await axios.post(`/api/cash-registers/${register.id}/work-orders?token=${register.token}`, {
             type,
         });
         state.submitted = true;
@@ -119,7 +119,6 @@ async function submitRequest(register: Register, type: 'overflow') {
     } catch (e: any) {
         console.error(e);
         state.error = 'Request failed. Please enter the password again.';
-        clearPassword();
     } finally {
         state.submitting = false;
     }
@@ -223,7 +222,7 @@ onMounted(() => {
                                     <template v-else-if="register.last_order.overflow.status === 'in_progress'">
                                         prepared {{ formatDate(register.last_order.overflow.created_at) }}
                                     </template>
-                                    <template v-else> created {{ formatDate(register.last_order.overflow.created_at) }} </template>
+                                    <template v-else> created {{ formatDate(register.last_order.overflow.created_at) }}</template>
                                 </p>
                                 <p v-else class="text-gray-400 italic">No overflow request yet</p>
                             </div>
@@ -237,7 +236,7 @@ onMounted(() => {
                                     <template v-else-if="register.last_order.change.status === 'in_progress'">
                                         prepared {{ formatDate(register.last_order.change.created_at) }}
                                     </template>
-                                    <template v-else> created {{ formatDate(register.last_order.change.created_at) }} </template>
+                                    <template v-else> created {{ formatDate(register.last_order.change.created_at) }}</template>
                                 </p>
                                 <p v-else class="text-gray-400 italic">No change request yet</p>
                             </div>
