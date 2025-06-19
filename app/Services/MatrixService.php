@@ -172,4 +172,29 @@ class MatrixService {
             return null;
         }
     }
+
+    public function deleteMessage(string $eventId, string $reason = ''): bool {
+        if(!$this->isConfigured()) return false;
+
+        try {
+            $encodedRoomId = urlencode($this->roomId);
+            $txnId         = Str::uuid();
+            $url           = "{$this->homeserverUrl}/_matrix/client/v3/rooms/{$encodedRoomId}/redact/{$eventId}/{$txnId}";
+
+            $payload = [];
+            if(!empty($reason)) {
+                $payload['reason'] = $reason;
+            }
+
+            $response = $this->sendRequest($url, $payload);
+            return $response !== null;
+        } catch(Throwable $e) {
+            Log::error('Matrix delete message request threw an exception.', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            return false;
+        }
+    }
+
 }
