@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-const props = defineProps<{
+defineProps<{
     form: any;
     submitting: boolean;
     error: string | null;

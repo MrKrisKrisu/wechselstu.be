@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-const props = defineProps<{
+defineProps<{
     form: any;
     hasActiveOverflowRequest: boolean;
     hasActiveChangeRequest: boolean;
     submitting: boolean;
 }>();
-const emit = defineEmits(['submitOverflow', 'toggleChangeForm']);
+const emit = defineEmits(['submitOverflow', 'toggleChangeForm', 'resetForm']);
 </script>
 
 <template>
@@ -14,8 +14,7 @@ const emit = defineEmits(['submitOverflow', 'toggleChangeForm']);
             class="w-full rounded bg-gray-500 px-4 py-2 font-bold text-white hover:bg-gray-700"
             @click="
                 () => {
-                    form.hasOverflow = false;
-                    form.needsChange = false;
+                    emit('resetForm');
                 }
             "
         >

@@ -106,6 +106,12 @@ async function submit() {
                     :hasActiveChangeRequest="hasActiveChangeRequest"
                     :hasActiveOverflowRequest="hasActiveOverflowRequest"
                     :submitting="submitting"
+                    @resetForm="
+                        () => {
+                            form.hasOverflow = false;
+                            form.needsChange = false;
+                        }
+                    "
                     @submitOverflow="
                         () => {
                             form.hasOverflow = true;
