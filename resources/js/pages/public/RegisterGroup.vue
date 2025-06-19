@@ -92,6 +92,9 @@ async function loadRegisters() {
                         { denomination: 50, quantity: 0 },
                         { denomination: 100, quantity: 0 },
                         { denomination: 200, quantity: 0 },
+                        { denomination: 500, quantity: 0 },
+                        { denomination: 1000, quantity: 0 },
+                        { denomination: 2000, quantity: 0 },
                     ],
                 };
             }

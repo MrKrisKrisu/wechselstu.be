@@ -24,6 +24,9 @@ function decrement(item: any) {
                 <span v-if="item.denomination === 50">0.50 Euro</span>
                 <span v-else-if="item.denomination === 100">1.00 Euro</span>
                 <span v-else-if="item.denomination === 200">2.00 Euro</span>
+                <span v-else-if="item.denomination === 500">5.00 Euro</span>
+                <span v-else-if="item.denomination === 1000">10.00 Euro</span>
+                <span v-else-if="item.denomination === 2000">20.00 Euro</span>
             </label>
             <div class="flex items-center gap-2">
                 <button
