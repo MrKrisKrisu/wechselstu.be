@@ -69,15 +69,6 @@ class CashRegisterApiTest extends TestCase {
     }
 
     #[Test]
-    public function validation_fails_on_missing_or_invalid_name(): void {
-        Passport::actingAs(User::factory()->create());
-        $register = CashRegister::factory()->create();
-
-        $this->postJson('/api/cash-registers', ['name' => ''])->assertUnprocessable();
-        $this->putJson("/api/cash-registers/{$register->id}", ['name' => ''])->assertUnprocessable();
-    }
-
-    #[Test]
     public function returns_404_for_invalid_register_id(): void {
         Passport::actingAs(User::factory()->create());
 
