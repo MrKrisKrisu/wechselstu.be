@@ -18,7 +18,7 @@ type ApiActivity = {
 type ApiTask = {
     id: string;
     status: 'pending' | 'in_progress' | 'done';
-    type: 'overflow' | 'change_request';
+    type: 'overflow' | 'change_request' | 'other';
     notes: string | null;
     cash_register: { id: string; name: string; token: string };
     change_request_items: Array<{ denomination: number; quantity: number }>;
@@ -31,7 +31,7 @@ type Task = {
     register: string;
     registerId: string;
     registerToken: string;
-    type: 'overflow' | 'change_request';
+    type: 'overflow' | 'change_request' | 'other';
     details: string;
     status: 'pending' | 'in_progress' | 'done';
     activities: ApiActivity[];
@@ -50,7 +50,7 @@ const counts = ref<CountResponse>({ total: 0, pending: 0, in_progress: 0, done: 
 const loading = ref(false);
 const nextCursor = ref<string | null>(null);
 const prevCursor = ref<string | null>(null);
-const statusFilter = ref<string>('pending,in_progress'); // Default filter to pending and in_progress
+const statusFilter = ref<string>('pending,in_progress');
 
 const statuses: Array<{ value: Task['status']; label: string; color: string }> = [
     { value: 'pending', label: 'Pending', color: 'yellow-500' },
@@ -62,8 +62,12 @@ const formatDetails = (task: ApiTask): string => {
     if (task.type === 'change_request') {
         return task.change_request_items.map((i) => `${i.quantity} x ${(i.denomination / 100).toFixed(2).replace('.', ',')} €`).join('\n');
     }
+    if (task.type === 'other') {
+        return task.notes ?? '';
+    }
     return task.notes ?? '';
 };
+
 const fetchCounts = async () => {
     try {
         const response = await axios.get<CountResponse>('/api/work-orders/count');
@@ -173,7 +177,9 @@ onMounted(async () => {
             <div class="grid gap-4 md:grid-cols-2">
                 <div v-for="task in tasks" :key="task.id" class="rounded border p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
                     <div class="font-semibold">{{ task.register }}</div>
-                    <div class="capitalize">{{ task.type === 'change_request' ? 'Change Request' : 'Overflow' }}</div>
+                    <div class="capitalize">
+                        {{ task.type === 'change_request' ? 'Change Request' : task.type === 'overflow' ? 'Overflow' : 'Other' }}
+                    </div>
                     <div class="mt-1 text-sm">
                         <pre class="whitespace-pre-wrap">{{ task.details }}</pre>
                     </div>

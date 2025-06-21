@@ -5,19 +5,12 @@ defineProps<{
     hasActiveChangeRequest: boolean;
     submitting: boolean;
 }>();
-const emit = defineEmits(['submitOverflow', 'toggleChangeForm', 'resetForm']);
+const emit = defineEmits(['submitOverflow', 'toggleChangeForm', 'toggleOtherForm', 'resetForm']);
 </script>
 
 <template>
-    <template v-if="(form.needsChange || form.hasOverflow) && !submitting">
-        <button
-            class="w-full rounded bg-gray-500 px-4 py-2 font-bold text-white hover:bg-gray-700"
-            @click="
-                () => {
-                    emit('resetForm');
-                }
-            "
-        >
+    <template v-if="(form.needsChange || form.hasOverflow || form.needsOther) && !submitting">
+        <button class="w-full rounded bg-gray-500 px-4 py-2 font-bold text-white hover:bg-gray-700" @click="() => emit('resetForm')">
             ← Go back
         </button>
     </template>
@@ -51,6 +44,14 @@ const emit = defineEmits(['submitOverflow', 'toggleChangeForm', 'resetForm']);
             <br />
             Change needed
             <span v-if="hasActiveChangeRequest" class="ml-2 text-sm font-bold text-green-500"> <br />There is already an active request. </span>
+        </button>
+
+        <button
+            :disabled="submitting"
+            class="mt-3 w-full rounded bg-blue-300 px-4 py-2 text-sm font-bold text-white hover:bg-blue-500"
+            @click="() => emit('toggleOtherForm')"
+        >
+            Other (freestyle text)
         </button>
 
         <template v-if="submitting">

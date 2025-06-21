@@ -49,10 +49,10 @@ class PublicWorkOrderController extends Controller {
 
         $data = $request->validate([
                                        'type'                 => ['required', Rule::enum(WorkOrderType::class)],
-                                       'notes'                => ['nullable', 'string'],
                                        'items'                => ['required_if:type,change_request', 'array'],
                                        'items.*.denomination' => ['required_with:items', 'integer', 'min:1'],
                                        'items.*.quantity'     => ['required_with:items', 'integer', 'min:1'],
+                                       'notes'                => ['required_if:type,other', 'string', 'max:255'],
                                    ]);
 
         $type = WorkOrderType::from($data['type']);
@@ -102,6 +102,7 @@ class PublicWorkOrderController extends Controller {
         $message .= match ($workOrder->type) {
             WorkOrderType::CHANGE_REQUEST => self::formatChangeRequestMessage($registerName, $workOrder->changeRequestItems->toArray(), $workOrder->notes),
             WorkOrderType::OVERFLOW       => "Cash overflow reported at register „{$registerName}”." . ($workOrder->notes ? "\n\nNotes: {$workOrder->notes}" : ''),
+            WorkOrderType::OTHER          => "Other request at register „{$registerName}”: {$workOrder->notes}",
         };
 
         if($workOrder->status === WorkOrderStatus::DONE) {

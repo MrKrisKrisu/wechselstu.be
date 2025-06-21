@@ -5,7 +5,7 @@ import { onMounted, ref } from 'vue';
 type ApiTask = {
     id: string;
     status: 'pending' | 'in_progress' | 'done';
-    type: 'overflow' | 'change_request';
+    type: 'overflow' | 'change_request' | 'other';
     notes: string | null;
     cash_register: {
         id: string;
@@ -127,7 +127,7 @@ onMounted(() => {
 
 <template>
     <div class="p-4">
-        <h1 class="mb-4 text-center text-2xl font-bold">Public Work Orders Dashboard</h1>
+        <h1 class="mb-4 text-center text-2xl font-bold">Open Work Orders</h1>
 
         <div v-if="!loading && tasks.length === 0" class="text-center text-3xl text-green-600">🎉 No open tasks 🎉</div>
 
@@ -135,7 +135,7 @@ onMounted(() => {
             <div v-for="task in tasks" :key="task.id" class="rounded border border-gray-300 p-4 shadow dark:border-gray-700 dark:bg-gray-800">
                 <div class="font-semibold">{{ task.cash_register.name }}</div>
                 <div class="mb-1 capitalize">
-                    {{ task.type === 'change_request' ? 'Change Request' : 'Overflow' }}
+                    {{ task.type === 'change_request' ? 'Change Request' : task.type === 'overflow' ? 'Overflow' : 'Other' }}
                 </div>
                 <div class="mt-1 text-sm whitespace-pre-wrap">
                     <template v-if="task.type === 'change_request'">

@@ -22,12 +22,13 @@ class WorkOrder extends Model {
 
     public    $incrementing = false;
     protected $keyType      = 'string';
-    protected $fillable     = ['cash_register_id', 'type', 'status', 'event_id'];
+    protected $fillable     = ['cash_register_id', 'type', 'status', 'notes', 'event_id'];
     protected $casts        = [
         'id'               => 'string',
         'cash_register_id' => 'string',
         'type'             => WorkOrderType::class,
         'status'           => WorkOrderStatus::class,
+        'notes'            => 'string',
         'event_id'         => 'string',
     ];
 
