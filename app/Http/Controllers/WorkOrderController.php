@@ -63,4 +63,24 @@ class WorkOrderController extends Controller {
 
         return new WorkOrderResource($workOrder);
     }
+
+    public function screen(Request $request): AnonymousResourceCollection|JsonResponse {
+        $token = $request->query('token');
+
+        if(empty($token)) {
+            return response()->json(['message' => 'Missing token.'], 400);
+        }
+
+        $correctToken = config('app.token.screen');
+        if($token !== $correctToken) {
+            return response()->json(['message' => 'Invalid token.'], 403);
+        }
+
+        $workOrders = WorkOrder::with(['cashRegister', 'changeRequestItems'])
+                               ->whereIn('status', ['pending', 'in_progress'])
+                               ->orderBy('created_at')
+                               ->get();
+
+        return WorkOrderResource::collection($workOrders);
+    }
 }

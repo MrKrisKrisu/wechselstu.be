@@ -123,4 +123,8 @@ return [
         'store'  => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'token' => [
+        'screen' => env('SCREEN_TOKEN'),
+    ],
+
 ];

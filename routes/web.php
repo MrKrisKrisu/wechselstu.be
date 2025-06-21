@@ -18,6 +18,10 @@ Route::get('/dashboard', function() {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::get('/dashboard/screen', function() {
+    return Inertia::render('backoffice/Screen');
+})->name('dashboard-screen');
+
 Route::get('/cash-registers/manage', function() {
     return Inertia::render('CashRegister');
 })->middleware(['auth', 'verified']);

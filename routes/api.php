@@ -19,6 +19,9 @@ Route::post(
 
 Route::get('/register-groups/{group_id}', [RegisterGroupController::class, 'registers']);
 
+// semi-auth Routes (token via URL, locally checked)
+Route::get('/screen/work-orders', [WorkOrderController::class, 'screen']);
+
 /**
  * Admin Routes (Protected by auth:api)
  */
