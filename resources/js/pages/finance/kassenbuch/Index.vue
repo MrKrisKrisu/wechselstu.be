@@ -105,8 +105,10 @@ const showCounterpart = computed(() => !noCounterpartTypes.has(entryForm.type));
 
 const entriesWithRunning = computed(() => {
     let running = 0;
+
     return entries.value.map((e) => {
         running += e.amount_cents;
+
         return { ...e, running };
     });
 });
@@ -114,6 +116,7 @@ const entriesWithRunning = computed(() => {
 async function load() {
     loading.value = true;
     error.value = null;
+
     try {
         const { data } = await axios.get('/api/finance/cash-ledger');
         entries.value = data.entries;
@@ -133,6 +136,7 @@ onMounted(load);
 
 function formatCents(cents: number): string {
     const sign = cents >= 0 ? '+' : '';
+
     return sign + (cents / 100).toFixed(2).replace('.', ',') + ' \u20ac';
 }
 
@@ -156,11 +160,15 @@ function formatTicketDate(iso: string): string {
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const hour = String(d.getHours()).padStart(2, '0');
     const minute = String(d.getMinutes()).padStart(2, '0');
+
     return `${day}.${month}. ${hour}:${minute} Uhr`;
 }
 
 function isLocked(entry: CashEntry): boolean {
-    if (!lockedUntil.value) return false;
+    if (!lockedUntil.value) {
+        return false;
+    }
+
     return new Date(entry.created_at) <= new Date(lockedUntil.value);
 }
 
@@ -175,6 +183,7 @@ async function submitEntry() {
     if (isNaN(rawAmount) || rawAmount <= 0) {
         entryFormError.value = 'Bitte einen positiven Betrag eingeben.';
         submitting.value = false;
+
         return;
     }
 
@@ -215,6 +224,7 @@ async function acceptSuggestion(suggestion: Suggestion) {
         entryForm.description = '';
         entryForm.counterpart_station_id = suggestion.station_id;
         showEntryForm.value = true;
+
         return;
     }
 
@@ -239,8 +249,9 @@ async function reverseEntry(entry: CashEntry) {
         !confirm(
             `Buchung "${entry.description ?? entry.type_label}" wirklich stornieren?`,
         )
-    )
+    ) {
         return;
+    }
 
     try {
         await axios.post(
@@ -674,10 +685,13 @@ function downloadExport(type: 'csv' | 'pdf') {
                                     Storniert
                                 </span>
                                 <span
-                                    v-if="entry.ticket_id && entry.ticket_done_at"
+                                    v-if="
+                                        entry.ticket_id && entry.ticket_done_at
+                                    "
                                     class="mt-0.5 block text-xs text-slate-400"
                                 >
-                                    Ticket vom {{ formatTicketDate(entry.ticket_done_at) }}
+                                    Ticket vom
+                                    {{ formatTicketDate(entry.ticket_done_at) }}
                                 </span>
                             </td>
                             <td

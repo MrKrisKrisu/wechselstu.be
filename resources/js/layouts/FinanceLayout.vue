@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import CloseIcon from 'vue-material-design-icons/Close.vue';
 import CashRegisterIcon from 'vue-material-design-icons/CashRegister.vue';
+import CloseIcon from 'vue-material-design-icons/Close.vue';
 import DomainIcon from 'vue-material-design-icons/Domain.vue';
 import HomeIcon from 'vue-material-design-icons/Home.vue';
 import LogoutIcon from 'vue-material-design-icons/Logout.vue';

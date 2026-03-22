@@ -21,12 +21,12 @@ services:
       - internal
       - traefik
     labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=traefik"
-      - "traefik.http.routers.wechselstube.rule=Host(`wechselstu.be`)"
-      - "traefik.http.routers.wechselstube.entrypoints=websecure"
-      - "traefik.http.routers.wechselstube.tls.certresolver=letsencrypt"
-      - "traefik.http.services.wechselstube.loadbalancer.server.port=80"
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik'
+      - 'traefik.http.routers.wechselstube.rule=Host(`wechselstu.be`)'
+      - 'traefik.http.routers.wechselstube.entrypoints=websecure'
+      - 'traefik.http.routers.wechselstube.tls.certresolver=letsencrypt'
+      - 'traefik.http.services.wechselstube.loadbalancer.server.port=80'
 
   reverb:
     image: ghcr.io/mrkriskrisu/wechselstu.be:latest
@@ -47,12 +47,12 @@ services:
       - internal
       - traefik
     labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=traefik"
-      - "traefik.http.routers.wechselstube-reverb.rule=Host(`ws.wechselstu.be`)"
-      - "traefik.http.routers.wechselstube-reverb.entrypoints=websecure"
-      - "traefik.http.routers.wechselstube-reverb.tls.certresolver=letsencrypt"
-      - "traefik.http.services.wechselstube-reverb.loadbalancer.server.port=8080"
+      - 'traefik.enable=true'
+      - 'traefik.docker.network=traefik'
+      - 'traefik.http.routers.wechselstube-reverb.rule=Host(`ws.wechselstu.be`)'
+      - 'traefik.http.routers.wechselstube-reverb.entrypoints=websecure'
+      - 'traefik.http.routers.wechselstube-reverb.tls.certresolver=letsencrypt'
+      - 'traefik.http.services.wechselstube-reverb.loadbalancer.server.port=8080'
 
   queue:
     image: ghcr.io/mrkriskrisu/wechselstu.be:latest
@@ -82,7 +82,7 @@ services:
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      test: ['CMD', 'healthcheck.sh', '--connect', '--innodb_initialized']
       interval: 10s
       timeout: 5s
       retries: 5

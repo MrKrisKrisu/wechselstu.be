@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
-import { RouterLink } from 'vue-router';
 import CashMultipleIcon from 'vue-material-design-icons/CashMultiple.vue';
 import ClipboardTextIcon from 'vue-material-design-icons/ClipboardText.vue';
 import CurrencyEurIcon from 'vue-material-design-icons/CurrencyEur.vue';
+import { RouterLink } from 'vue-router';
 import { useFinanceChannel } from '@/composables/useEcho';
 import axios from '@/lib/axios';
 import { useTicketStore } from '@/stores/tickets';

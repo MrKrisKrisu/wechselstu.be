@@ -34,6 +34,7 @@ export const useTicketStore = defineStore('tickets', () => {
             .sort((a, b) => {
                 const ta = a.done_at ?? a.created_at;
                 const tb = b.done_at ?? b.created_at;
+
                 return new Date(tb).getTime() - new Date(ta).getTime();
             })
             .slice(0, 20),
