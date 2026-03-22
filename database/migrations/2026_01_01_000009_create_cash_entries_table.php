@@ -10,6 +10,7 @@ return new class extends Migration
     {
         Schema::create('cash_entries', function (Blueprint $table) {
             $table->uuid('id')->primary();
+            $table->unsignedBigInteger('entry_number')->nullable()->unique();
             $table->string('type');
             $table->integer('amount_cents');
             $table->text('description')->nullable();

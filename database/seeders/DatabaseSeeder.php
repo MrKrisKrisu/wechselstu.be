@@ -44,9 +44,13 @@ class DatabaseSeeder extends Seeder
         }
 
         $pick = fn () => $users[array_rand($users)];
+        $entryNumber = 0;
+        $entry = function (array $data) use (&$entryNumber) {
+            return CashEntry::create(array_merge(['entry_number' => ++$entryNumber], $data));
+        };
 
         // Anfangsbestand Hauptkasse
-        CashEntry::create([
+        $entry([
             'type' => CashEntryType::Opening->value,
             'amount_cents' => 200_000, // 2.000 €
             'description' => 'Von Girokonto',
@@ -58,7 +62,7 @@ class DatabaseSeeder extends Seeder
 
         // Morgens: Kassenöffnungen mit Wechselgeld
         // HK gibt aus: 300 + 200 + 150 = 650 €  -> HK: 1.350 €
-        CashEntry::create([
+        $entry([
             'type' => CashEntryType::CashDrawerOpen->value,
             'amount_cents' => -30_000, // 300 €
             'description' => 'Wechselgeld',
@@ -68,7 +72,7 @@ class DatabaseSeeder extends Seeder
             'updated_at' => now()->subHours(7),
         ]);
 
-        CashEntry::create([
+        $entry([
             'type' => CashEntryType::CashDrawerOpen->value,
             'amount_cents' => -20_000, // 200 €
             'description' => 'Wechselgeld',
@@ -78,7 +82,7 @@ class DatabaseSeeder extends Seeder
             'updated_at' => now()->subHours(7),
         ]);
 
-        CashEntry::create([
+        $entry([
             'type' => CashEntryType::CashDrawerOpen->value,
             'amount_cents' => -15_000, // 150 €
             'description' => 'Wechselgeld',
@@ -101,7 +105,7 @@ class DatabaseSeeder extends Seeder
             'updated_at' => now()->subHours(3)->subMinutes(40),
         ]);
 
-        CashEntry::create([
+        $entry([
             'type' => CashEntryType::TransferOut->value,
             'amount_cents' => -8_000, // 80 €
             'description' => 'Wechselgeld ausgegeben',
@@ -126,7 +130,7 @@ class DatabaseSeeder extends Seeder
             'updated_at' => now()->subHours(3)->addMinutes(10),
         ]);
 
-        CashEntry::create([
+        $entry([
             'type' => CashEntryType::TransferIn->value,
             'amount_cents' => 48_000, // 480 €
             'description' => 'Abschöpfung Umsatz Mittagsschicht',
@@ -139,7 +143,7 @@ class DatabaseSeeder extends Seeder
         // HK: 1.270 + 480 = 1.750 €, Tschunk-Float: 300 €
 
         // Abschöpfung Snack (ohne Ticket)
-        CashEntry::create([
+        $entry([
             'type' => CashEntryType::TransferIn->value,
             'amount_cents' => 22_000, // 220 €
             'description' => 'Abschöpfung Umsatz Mittagsschicht',
@@ -163,7 +167,7 @@ class DatabaseSeeder extends Seeder
             'updated_at' => now()->subHours(1)->subMinutes(50),
         ]);
 
-        CashEntry::create([
+        $entry([
             'type' => CashEntryType::TransferOut->value,
             'amount_cents' => -10_000, // 100 €
             'description' => 'Kleingeld-Nachschub',

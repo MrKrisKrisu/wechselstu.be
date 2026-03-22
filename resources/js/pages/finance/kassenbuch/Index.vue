@@ -11,6 +11,7 @@ import axios from '@/lib/axios';
 
 interface CashEntry {
     id: string;
+    entry_number: number | null;
     type: string;
     type_label: string;
     amount_cents: number;
@@ -217,12 +218,18 @@ async function submitEntry() {
 
 async function acceptSuggestion(suggestion: Suggestion) {
     const amountCents = suggestion.suggested_amount_cents;
+    const openForm =
+        amountCents === null || suggestion.ticket_type === 'change_request';
 
-    if (amountCents === null) {
+    if (openForm) {
         entryForm.type = suggestion.suggested_type;
         entryForm.ticket_id = suggestion.ticket_id;
         entryForm.description = '';
         entryForm.counterpart_station_id = suggestion.station_id;
+        entryForm.amount_cents_display =
+            amountCents !== null
+                ? (Math.abs(amountCents) / 100).toFixed(2).replace('.', ',')
+                : '';
         showEntryForm.value = true;
 
         return;
@@ -618,6 +625,7 @@ function downloadExport(type: 'csv' | 'pdf') {
                         <tr
                             class="border-b border-slate-100 bg-slate-50 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase"
                         >
+                            <th class="px-4 py-3">#</th>
                             <th class="px-4 py-3">Datum</th>
                             <th class="px-4 py-3">Typ</th>
                             <th class="px-4 py-3">Gegenkasse</th>
@@ -634,6 +642,11 @@ function downloadExport(type: 'csv' | 'pdf') {
                             :key="entry.id"
                             :class="entry.reversed_at ? 'opacity-40' : ''"
                         >
+                            <td
+                                class="px-4 py-3 font-mono text-xs font-medium text-slate-500"
+                            >
+                                {{ entry.entry_number ?? '—' }}
+                            </td>
                             <td
                                 class="px-4 py-3 text-xs whitespace-nowrap text-slate-500"
                             >

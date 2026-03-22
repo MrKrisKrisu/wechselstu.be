@@ -206,6 +206,7 @@ class CashLedgerController extends Controller
     {
         return [
             'id' => $entry->id,
+            'entry_number' => $entry->entry_number,
             'type' => $entry->type->value,
             'type_label' => $entry->type->label(),
             'amount_cents' => $entry->amount_cents,

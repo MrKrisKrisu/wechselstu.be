@@ -35,9 +35,9 @@ return [
         ],
     ],
 
-    'epos' => [
-        'printer_ip' => env('EPOS_PRINTER_IP', ''),
-        'device_id' => env('EPOS_DEVICE_ID', 'local_printer'),
+    'printer' => [
+        'ip' => env('PRINTER_IP', ''),
+        'port' => env('PRINTER_PORT', 9100),
     ],
 
     'matrix' => [

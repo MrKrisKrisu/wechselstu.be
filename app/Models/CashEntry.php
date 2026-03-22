@@ -12,6 +12,7 @@ class CashEntry extends Model
     use HasUuids;
 
     protected $fillable = [
+        'entry_number',
         'type',
         'amount_cents',
         'description',

@@ -11,7 +11,7 @@ enum TicketType: string
     public function label(): string
     {
         return match ($this) {
-            self::CashFull => 'Kasse voll',
+            self::CashFull => 'Abschöpfen',
             self::ChangeRequest => 'Wechselgeld',
             self::Other => 'Sonstiges',
         };
