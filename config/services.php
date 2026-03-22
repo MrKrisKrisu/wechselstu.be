@@ -15,30 +15,35 @@ return [
     */
 
     'postmark' => [
-        'token' => env('POSTMARK_TOKEN'),
-    ],
-
-    'ses' => [
-        'key'    => env('AWS_ACCESS_KEY_ID'),
-        'secret' => env('AWS_SECRET_ACCESS_KEY'),
-        'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+        'key' => env('POSTMARK_API_KEY'),
     ],
 
     'resend' => [
-        'key' => env('RESEND_KEY'),
+        'key' => env('RESEND_API_KEY'),
+    ],
+
+    'ses' => [
+        'key' => env('AWS_ACCESS_KEY_ID'),
+        'secret' => env('AWS_SECRET_ACCESS_KEY'),
+        'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
-            'channel'              => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
+            'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
 
+    'epos' => [
+        'printer_ip' => env('EPOS_PRINTER_IP', ''),
+        'device_id' => env('EPOS_DEVICE_ID', 'local_printer'),
+    ],
+
     'matrix' => [
-        'homeserver_url' => env('MATRIX_HOMESERVER_URL'),
-        'room_id'        => env('MATRIX_ROOM_ID'),
-        'access_token'   => env('MATRIX_ACCESS_TOKEN'),
+        'homeserver_url' => env('MATRIX_HOMESERVER_URL', ''),
+        'access_token' => env('MATRIX_ACCESS_TOKEN', ''),
+        'room_id' => env('MATRIX_ROOM_ID', ''),
     ],
 
 ];

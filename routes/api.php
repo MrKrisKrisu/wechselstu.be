@@ -1,40 +1,34 @@
 <?php
 
-use App\Http\Controllers\CashRegisterController;
-use App\Http\Controllers\PublicWorkOrderController;
-use App\Http\Controllers\RegisterGroupController;
-use App\Http\Controllers\WorkOrderController;
+use App\Http\Controllers\Api\Finance\AuthController;
+use App\Http\Controllers\Api\Finance\DashboardAccessController;
+use App\Http\Controllers\Api\Finance\StationController as FinanceStationController;
+use App\Http\Controllers\Api\Finance\TicketController as FinanceTicketController;
+use App\Http\Controllers\Api\Public\MonitorController;
+use App\Http\Controllers\Api\Public\StationController as PublicStationController;
+use App\Http\Controllers\Api\Public\TicketController as PublicTicketController;
 use Illuminate\Support\Facades\Route;
 
-/**
- * Public Routes (No authentication, token via URL)
- */
-Route::get('/cash-registers/{cashRegisterId}/status',
-           [PublicWorkOrderController::class, 'status']
-);
-Route::post(
-    '/cash-registers/{cashRegisterId}/work-orders',
-    [PublicWorkOrderController::class, 'store']
-);
+Route::prefix('stations/{token}')->group(function () {
+    Route::get('/', [PublicStationController::class, 'show']);
+    Route::post('/tickets', [PublicTicketController::class, 'store']);
+});
 
-Route::get('/register-groups/{group_id}', [RegisterGroupController::class, 'registers']);
+Route::get('/tickets/{id}', [PublicTicketController::class, 'show']);
 
-// semi-auth Routes (token via URL, locally checked)
-Route::get('/screen/work-orders', [WorkOrderController::class, 'screen']);
+Route::get('/monitor', [MonitorController::class, 'index'])->middleware('dashboard.token');
 
-/**
- * Admin Routes (Protected by auth:api)
- */
-Route::middleware('auth:api')->group(function() {
-    Route::get('/work-orders', [WorkOrderController::class, 'index']);
-    Route::get('/work-orders/count', [WorkOrderController::class, 'count']);
-    Route::get('/work-orders/{id}', [WorkOrderController::class, 'show']);
-    Route::put('/work-orders/{id}', [WorkOrderController::class, 'update']);
+Route::middleware('auth:sanctum')->prefix('finance')->group(function () {
+    Route::get('/user', [AuthController::class, 'user']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 
-    Route::get('/cash-registers', [CashRegisterController::class, 'index']);
-    Route::post('/cash-registers', [CashRegisterController::class, 'store']);
-    Route::put('/cash-registers/{id}', [CashRegisterController::class, 'update']);
-    Route::post('/cash-registers/{id}/reset-token', [CashRegisterController::class, 'resetToken']);
+    Route::apiResource('stations', FinanceStationController::class);
 
-    Route::get('/register-groups', [RegisterGroupController::class, 'index']);
+    Route::get('/tickets', [FinanceTicketController::class, 'index']);
+    Route::patch('/tickets/{ticket}/accept', [FinanceTicketController::class, 'accept']);
+    Route::patch('/tickets/{ticket}/complete', [FinanceTicketController::class, 'complete']);
+
+    Route::get('/dashboard-access', [DashboardAccessController::class, 'index']);
+    Route::post('/dashboard-access', [DashboardAccessController::class, 'store']);
+    Route::delete('/dashboard-access/{dashboardAccess}', [DashboardAccessController::class, 'destroy']);
 });

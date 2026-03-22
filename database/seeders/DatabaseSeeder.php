@@ -2,32 +2,24 @@
 
 namespace Database\Seeders;
 
-use App\Models\CashRegister;
-use App\Models\ChangeRequestItem;
-use App\Models\RegisterGroup;
+use App\Models\Station;
 use App\Models\User;
-use App\Models\WorkOrder;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
-class DatabaseSeeder extends Seeder {
-    public function run(): void {
-        User::factory()->create([
-                                    'name'     => 'John Doe',
-                                    'email'    => 'dev@dev.de',
-                                    'password' => Hash::make('password'),
-                                ]);
+class DatabaseSeeder extends Seeder
+{
+    public function run(): void
+    {
+        User::firstOrCreate(['email' => 'dev@dev.de'], [
+            'name' => 'Max',
+            'password' => Hash::make('password'),
+        ]);
 
-        RegisterGroup::factory()->create();
-        CashRegister::factory()->count(10)->create();
-
-        for($i = 0; $i <= 20; $i++) {
-            WorkOrder::factory(['cash_register_id' => CashRegister::all()->random()->id])->create();
-        }
-
-        $changeRequestOrders = WorkOrder::where('type', 'change_request')->get();
-        foreach($changeRequestOrders as $changeRequestOrder) {
-            ChangeRequestItem::factory(['work_order_id' => $changeRequestOrder->id])->create();
-        }
+        Station::firstOrCreate(['name' => 'Tschunk Kasse', 'location' => 'Bar']);
+        Station::firstOrCreate(['name' => 'Snack Kasse', 'location' => 'Bar']);
+        Station::firstOrCreate(['name' => 'Kasse 1', 'location' => 'Außenbar']);
+        Station::firstOrCreate(['name' => 'Kasse 1', 'location' => 'Merch']);
+        Station::firstOrCreate(['name' => 'Kasse 2', 'location' => 'Merch']);
     }
 }
