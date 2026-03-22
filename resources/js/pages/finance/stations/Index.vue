@@ -135,6 +135,11 @@ async function renderQr(el: HTMLCanvasElement | null, token: string) {
                             Standort
                         </th>
                         <th
+                            class="px-4 py-3 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase"
+                        >
+                            Saldo (Hilfsrechnung)
+                        </th>
+                        <th
                             class="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase"
                         >
                             Token
@@ -162,6 +167,18 @@ async function renderQr(el: HTMLCanvasElement | null, token: string) {
                         </td>
                         <td class="px-4 py-3 text-slate-600">
                             {{ station.location }}
+                        </td>
+                        <td
+                            class="px-4 py-3 text-right font-mono text-sm font-medium text-slate-700"
+                            :title="'Nur Hilfsrechnung — maßgeblich ist pretix POS mit TSE'"
+                        >
+                            {{
+                                station.balance_cents !== undefined
+                                    ? (station.balance_cents / 100)
+                                          .toFixed(2)
+                                          .replace('.', ',') + ' €'
+                                    : ''
+                            }}
                         </td>
                         <td class="px-4 py-3">
                             <code
@@ -237,5 +254,9 @@ async function renderQr(el: HTMLCanvasElement | null, token: string) {
                 </tbody>
             </table>
         </div>
+        <p class="mt-3 text-xs text-slate-400">
+            Der Saldo ist eine Hilfsrechnung aus den Kassenbuch-Buchungen.
+            Maßgeblich ist der in pretix POS mit TSE erfasste Kassenbestand.
+        </p>
     </div>
 </template>

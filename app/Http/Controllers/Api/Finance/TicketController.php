@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\Finance;
 use App\Events\TicketCreated;
 use App\Http\Controllers\Controller;
 use App\Models\Ticket;
+use App\Repositories\CashEntryRepository;
 use App\Repositories\Interfaces\TicketRepositoryInterface;
 use App\Services\TicketService;
 use Illuminate\Http\JsonResponse;
@@ -15,6 +16,7 @@ class TicketController extends Controller
     public function __construct(
         private readonly TicketRepositoryInterface $tickets,
         private readonly TicketService $ticketService,
+        private readonly CashEntryRepository $cashEntries,
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -22,8 +24,15 @@ class TicketController extends Controller
         $filters = $request->only(['type', 'status', 'station_id']);
         $tickets = $this->tickets->allForFinance($filters);
 
+        $linkedTicketIds = $this->cashEntries->linkedTicketIds()->flip();
+
         return response()->json([
-            'tickets' => $tickets->map(fn ($t) => TicketCreated::serializeTicket($t))->values(),
+            'tickets' => $tickets->map(function ($t) use ($linkedTicketIds) {
+                return array_merge(
+                    TicketCreated::serializeTicket($t),
+                    ['has_cash_entry' => isset($linkedTicketIds[$t->id])],
+                );
+            })->values(),
         ]);
     }
 

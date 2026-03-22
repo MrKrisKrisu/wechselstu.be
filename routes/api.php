@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\Finance\AuthController;
+use App\Http\Controllers\Api\Finance\CashLedgerController;
 use App\Http\Controllers\Api\Finance\DashboardAccessController;
 use App\Http\Controllers\Api\Finance\StationController as FinanceStationController;
 use App\Http\Controllers\Api\Finance\TicketController as FinanceTicketController;
@@ -31,4 +32,11 @@ Route::middleware('auth:sanctum')->prefix('finance')->group(function () {
     Route::get('/dashboard-access', [DashboardAccessController::class, 'index']);
     Route::post('/dashboard-access', [DashboardAccessController::class, 'store']);
     Route::delete('/dashboard-access/{dashboardAccess}', [DashboardAccessController::class, 'destroy']);
+
+    Route::get('/cash-ledger', [CashLedgerController::class, 'index']);
+    Route::post('/cash-ledger/entries', [CashLedgerController::class, 'storeEntry']);
+    Route::post('/cash-ledger/entries/{entry}/reversal', [CashLedgerController::class, 'storeReversal']);
+    Route::post('/cash-ledger/closings', [CashLedgerController::class, 'storeClosing']);
+    Route::get('/cash-ledger/export/csv', [CashLedgerController::class, 'exportCsv']);
+    Route::get('/cash-ledger/export/pdf', [CashLedgerController::class, 'exportPdf']);
 });

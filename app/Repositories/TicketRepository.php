@@ -3,10 +3,13 @@
 namespace App\Repositories;
 
 use App\Enums\TicketStatus;
+use App\Enums\TicketType;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Repositories\Interfaces\TicketRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection as SupportCollection;
 
 class TicketRepository implements TicketRepositoryInterface
 {
@@ -69,5 +72,15 @@ class TicketRepository implements TicketRepositoryInterface
         ]);
 
         return $ticket->fresh(['station', 'denominations', 'assignedUser']);
+    }
+
+    public function unlinkedDoneSuggestions(SupportCollection $linkedTicketIds, ?Carbon $lockedUntil): Collection
+    {
+        return Ticket::with(['station', 'denominations'])
+            ->whereIn('type', [TicketType::ChangeRequest->value, TicketType::CashFull->value])
+            ->where('status', TicketStatus::Done->value)
+            ->whereNotIn('id', $linkedTicketIds)
+            ->when($lockedUntil, fn ($q) => $q->where('done_at', '>', $lockedUntil))
+            ->get();
     }
 }

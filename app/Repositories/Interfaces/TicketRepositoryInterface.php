@@ -5,6 +5,8 @@ namespace App\Repositories\Interfaces;
 use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection as SupportCollection;
 
 interface TicketRepositoryInterface
 {
@@ -23,4 +25,6 @@ interface TicketRepositoryInterface
     public function accept(Ticket $ticket, User $user): Ticket;
 
     public function complete(Ticket $ticket): Ticket;
+
+    public function unlinkedDoneSuggestions(SupportCollection $linkedTicketIds, ?Carbon $lockedUntil): Collection;
 }

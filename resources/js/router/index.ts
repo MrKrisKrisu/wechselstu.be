@@ -39,6 +39,11 @@ const financeRoutes: RouteRecordRaw[] = [
                 name: 'finance.dashboard-access',
                 component: () => import('@/pages/finance/DashboardAccess.vue'),
             },
+            {
+                path: 'kassenbuch',
+                name: 'finance.kassenbuch',
+                component: () => import('@/pages/finance/kassenbuch/Index.vue'),
+            },
         ],
     },
 ];

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue';
+import { RouterLink } from 'vue-router';
 import CashMultipleIcon from 'vue-material-design-icons/CashMultiple.vue';
 import ClipboardTextIcon from 'vue-material-design-icons/ClipboardText.vue';
 import CurrencyEurIcon from 'vue-material-design-icons/CurrencyEur.vue';
@@ -315,12 +316,22 @@ function formatCents(cents: number): string {
                         >
                             Erledigt von: {{ ticket.assigned_user.name }}
                         </p>
+                        <RouterLink
+                            v-if="
+                                ticket.type !== 'other' &&
+                                ticket.has_cash_entry === false
+                            "
+                            :to="{ name: 'finance.kassenbuch' }"
+                            class="mt-2 block rounded-md bg-amber-100 px-2.5 py-1.5 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-200"
+                        >
+                            Noch keine Kassenbuchung &rarr;
+                        </RouterLink>
                     </div>
                     <p
                         v-if="ticketStore.doneTickets.length === 0"
                         class="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-400"
                     >
-                        Keine erledigten Tickets (letzte Stunde)
+                        Keine erledigten Tickets
                     </p>
                 </div>
             </div>

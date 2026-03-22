@@ -4,22 +4,26 @@ namespace App\Http\Controllers\Api\Finance;
 
 use App\Http\Controllers\Controller;
 use App\Models\Station;
-use App\Repositories\Interfaces\StationRepositoryInterface;
+use App\Repositories\StationRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class StationController extends Controller
 {
     public function __construct(
-        private readonly StationRepositoryInterface $stations,
+        private readonly StationRepository $stations,
     ) {}
 
     public function index(): JsonResponse
     {
         $stations = $this->stations->all();
+        $balances = $this->stations->balances();
 
         return response()->json([
-            'stations' => $stations->map(fn ($s) => $this->serialize($s))->values(),
+            'stations' => $stations->map(fn ($s) => array_merge(
+                $this->serialize($s),
+                ['balance_cents' => (int) ($balances[$s->id] ?? 0)],
+            ))->values(),
         ]);
     }
 

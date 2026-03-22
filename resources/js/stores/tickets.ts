@@ -29,7 +29,14 @@ export const useTicketStore = defineStore('tickets', () => {
         visibleTickets.value.filter((t) => t.status === 'accepted'),
     );
     const doneTickets = computed(() =>
-        visibleTickets.value.filter((t) => t.status === 'done'),
+        tickets.value
+            .filter((t) => t.status === 'done')
+            .sort((a, b) => {
+                const ta = a.done_at ?? a.created_at;
+                const tb = b.done_at ?? b.created_at;
+                return new Date(tb).getTime() - new Date(ta).getTime();
+            })
+            .slice(0, 20),
     );
 
     function setTickets(list: Ticket[]): void {
