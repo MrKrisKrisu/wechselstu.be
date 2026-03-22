@@ -1,0 +1,99 @@
+services:
+  app:
+    image: ghcr.io/mrkriskrisu/wechselstu.be:latest
+    env_file: .env
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: wechselstube
+      DB_USERNAME: wechselstube
+      DB_PASSWORD: secret
+      SESSION_DRIVER: database
+      CACHE_STORE: database
+      QUEUE_CONNECTION: database
+      BROADCAST_CONNECTION: reverb
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - internal
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.wechselstube.rule=Host(`wechselstu.be`)"
+      - "traefik.http.routers.wechselstube.entrypoints=websecure"
+      - "traefik.http.routers.wechselstube.tls.certresolver=letsencrypt"
+      - "traefik.http.services.wechselstube.loadbalancer.server.port=80"
+
+  reverb:
+    image: ghcr.io/mrkriskrisu/wechselstu.be:latest
+    command: php artisan reverb:start --host=0.0.0.0 --port=8080
+    env_file: .env
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: wechselstube
+      DB_USERNAME: wechselstube
+      DB_PASSWORD: secret
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - internal
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.wechselstube-reverb.rule=Host(`ws.wechselstu.be`)"
+      - "traefik.http.routers.wechselstube-reverb.entrypoints=websecure"
+      - "traefik.http.routers.wechselstube-reverb.tls.certresolver=letsencrypt"
+      - "traefik.http.services.wechselstube-reverb.loadbalancer.server.port=8080"
+
+  queue:
+    image: ghcr.io/mrkriskrisu/wechselstu.be:latest
+    command: php artisan queue:work --tries=3 --timeout=90
+    env_file: .env
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: wechselstube
+      DB_USERNAME: wechselstube
+      DB_PASSWORD: secret
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - internal
+
+  db:
+    image: mariadb:12
+    environment:
+      MYSQL_ROOT_PASSWORD: rootsecret
+      MYSQL_DATABASE: wechselstube
+      MYSQL_USER: wechselstube
+      MYSQL_PASSWORD: secret
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - internal
+
+volumes:
+  db_data:
+
+networks:
+  internal:
+  traefik:
+    external: true

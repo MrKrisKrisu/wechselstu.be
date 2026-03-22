@@ -1,18 +1,18 @@
-<script lang="ts" setup>
-import type {HTMLAttributes} from 'vue'
-import {cn} from '@/lib/utils'
-import {AvatarRoot} from 'reka-ui'
+<script setup lang="ts">
+import type { HTMLAttributes } from "vue"
+import { AvatarRoot } from "reka-ui"
+import { cn } from "@/lib/utils"
 
 const props = defineProps<{
-  class?: HTMLAttributes['class']
+  class?: HTMLAttributes["class"]
 }>()
 </script>
 
 <template>
   <AvatarRoot
-      :class="cn('relative flex size-8 shrink-0 overflow-hidden rounded-full', props.class)"
-      data-slot="avatar"
+    data-slot="avatar"
+    :class="cn('relative flex size-8 shrink-0 overflow-hidden rounded-full', props.class)"
   >
-    <slot/>
+    <slot />
   </AvatarRoot>
 </template>

@@ -1,5 +1,6 @@
-<script lang="ts" setup>
-import {TooltipRoot, type TooltipRootEmits, type TooltipRootProps, useForwardPropsEmits} from 'reka-ui'
+<script setup lang="ts">
+import type { TooltipRootEmits, TooltipRootProps } from "reka-ui"
+import { TooltipRoot, useForwardPropsEmits } from "reka-ui"
 
 const props = defineProps<TooltipRootProps>()
 const emits = defineEmits<TooltipRootEmits>()
@@ -9,9 +10,10 @@ const forwarded = useForwardPropsEmits(props, emits)
 
 <template>
   <TooltipRoot
-      data-slot="tooltip"
-      v-bind="forwarded"
+    v-slot="slotProps"
+    data-slot="tooltip"
+    v-bind="forwarded"
   >
-    <slot/>
+    <slot v-bind="slotProps" />
   </TooltipRoot>
 </template>
