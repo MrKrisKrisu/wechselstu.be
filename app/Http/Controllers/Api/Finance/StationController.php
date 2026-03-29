@@ -5,13 +5,16 @@ namespace App\Http\Controllers\Api\Finance;
 use App\Http\Controllers\Controller;
 use App\Models\Station;
 use App\Repositories\StationRepository;
+use App\Services\StationSignService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 
 class StationController extends Controller
 {
     public function __construct(
         private readonly StationRepository $stations,
+        private readonly StationSignService $signService,
     ) {}
 
     public function index(): JsonResponse
@@ -54,6 +57,16 @@ class StationController extends Controller
         $station = $this->stations->update($station, $validated);
 
         return response()->json(['station' => $this->serialize($station)]);
+    }
+
+    public function sign(Station $station): Response
+    {
+        $pdf = $this->signService->generate($station);
+
+        return response($pdf, 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="station-sign-'.$station->token.'.pdf"',
+        ]);
     }
 
     public function destroy(Station $station): JsonResponse

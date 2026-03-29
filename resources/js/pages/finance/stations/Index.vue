@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import QRCode from 'qrcode';
 import { ref, onMounted } from 'vue';
 import CheckIcon from 'vue-material-design-icons/Check.vue';
 import ContentCopyIcon from 'vue-material-design-icons/ContentCopy.vue';
-import DownloadIcon from 'vue-material-design-icons/Download.vue';
+import FilePdfBoxIcon from 'vue-material-design-icons/FilePdfBox.vue';
 import PencilIcon from 'vue-material-design-icons/Pencil.vue';
 import PlusIcon from 'vue-material-design-icons/Plus.vue';
 import TrashCanIcon from 'vue-material-design-icons/TrashCan.vue';
@@ -48,41 +47,27 @@ async function deleteStation(station: Station) {
     }
 }
 
-function stationUrl(token: string): string {
-    return `${window.location.origin}/s/${token}`;
-}
-
-async function downloadQr(station: Station) {
-    try {
-        const url = stationUrl(station.token);
-        const dataUrl = await QRCode.toDataURL(url, { width: 512, margin: 2 });
-        const a = document.createElement('a');
-        a.href = dataUrl;
-        a.download = `qr-${station.name.replace(/\s+/g, '-').toLowerCase()}.png`;
-        a.click();
-    } catch {
-        alert('QR-Code konnte nicht erstellt werden.');
-    }
-}
-
 async function copyLink(station: Station) {
-    await navigator.clipboard.writeText(stationUrl(station.token));
+    await navigator.clipboard.writeText(`${window.location.origin}/s/${station.token}`);
     copiedId.value = station.id;
     setTimeout(() => {
         copiedId.value = null;
     }, 2000);
 }
 
-// Render QR code into canvas element
-async function renderQr(el: HTMLCanvasElement | null, token: string) {
-    if (!el) {
-        return;
-    }
-
+async function downloadSign(station: Station) {
     try {
-        await QRCode.toCanvas(el, stationUrl(token), { width: 64, margin: 1 });
+        const response = await axios.get(`/api/finance/stations/${station.id}/sign`, {
+            responseType: 'blob',
+        });
+        const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `station-sign-${station.token}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
     } catch {
-        // silently fail
+        alert('Aushang konnte nicht erstellt werden.');
     }
 }
 </script>
@@ -109,9 +94,7 @@ async function renderQr(el: HTMLCanvasElement | null, token: string) {
             {{ error }}
         </div>
 
-        <div
-            class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
-        >
+        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
             <div v-if="loading" class="p-8 text-center text-sm text-slate-400">
                 Lädt...
             </div>
@@ -124,34 +107,16 @@ async function renderQr(el: HTMLCanvasElement | null, token: string) {
             <table v-else class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50">
-                        <th
-                            class="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase"
-                        >
+                        <th class="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase">
                             Name
                         </th>
-                        <th
-                            class="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase"
-                        >
+                        <th class="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase">
                             Standort
                         </th>
-                        <th
-                            class="px-4 py-3 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase"
-                        >
-                            Saldo (Hilfsrechnung)
-                        </th>
-                        <th
-                            class="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase"
-                        >
+                        <th class="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase">
                             Token
                         </th>
-                        <th
-                            class="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase"
-                        >
-                            QR-Code
-                        </th>
-                        <th
-                            class="px-4 py-3 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase"
-                        >
+                        <th class="px-4 py-3 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase">
                             Aktionen
                         </th>
                     </tr>
@@ -168,74 +133,37 @@ async function renderQr(el: HTMLCanvasElement | null, token: string) {
                         <td class="px-4 py-3 text-slate-600">
                             {{ station.location }}
                         </td>
-                        <td
-                            class="px-4 py-3 text-right font-mono text-sm font-medium text-slate-700"
-                            :title="'Nur Hilfsrechnung — maßgeblich ist pretix POS mit TSE'"
-                        >
-                            {{
-                                station.balance_cents !== undefined
-                                    ? (station.balance_cents / 100)
-                                          .toFixed(2)
-                                          .replace('.', ',') + ' €'
-                                    : ''
-                            }}
-                        </td>
                         <td class="px-4 py-3">
-                            <code
-                                class="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-700"
-                            >
+                            <code class="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-700">
                                 {{ station.token }}
                             </code>
                         </td>
                         <td class="px-4 py-3">
-                            <div class="flex items-center gap-2">
-                                <canvas
-                                    :ref="
-                                        (el) =>
-                                            renderQr(
-                                                el as HTMLCanvasElement,
-                                                station.token,
-                                            )
-                                    "
-                                    class="rounded border border-slate-200"
-                                />
-                                <div class="flex flex-col gap-1">
-                                    <button
-                                        @click="downloadQr(station)"
-                                        class="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-600 transition-colors hover:bg-slate-100"
-                                        title="QR-Code herunterladen"
-                                    >
-                                        <DownloadIcon :size="12" />
-                                        PNG
-                                    </button>
-                                    <button
-                                        @click="copyLink(station)"
-                                        class="flex items-center gap-1 rounded-lg border px-2 py-1 text-xs transition-colors"
-                                        :class="
-                                            copiedId === station.id
-                                                ? 'border-green-200 bg-green-50 text-green-700'
-                                                : 'border-slate-200 text-slate-600 hover:bg-slate-100'
-                                        "
-                                        title="Link kopieren"
-                                    >
-                                        <CheckIcon
-                                            v-if="copiedId === station.id"
-                                            :size="12"
-                                        />
-                                        <ContentCopyIcon v-else :size="12" />
-                                        Link
-                                    </button>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">
                             <div class="flex items-center justify-end gap-2">
                                 <button
-                                    @click="
-                                        router.push(
-                                            `/finance/stations/${station.id}/edit`,
-                                        )
+                                    @click="copyLink(station)"
+                                    class="flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors"
+                                    :class="
+                                        copiedId === station.id
+                                            ? 'border-green-200 bg-green-50 text-green-700'
+                                            : 'border-slate-200 text-slate-600 hover:bg-slate-100'
                                     "
+                                    title="Link kopieren"
+                                >
+                                    <CheckIcon v-if="copiedId === station.id" :size="12" />
+                                    <ContentCopyIcon v-else :size="12" />
+                                    Link
+                                </button>
+                                <button
+                                    @click="downloadSign(station)"
+                                    class="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100"
+                                    title="Aushang als PDF herunterladen"
+                                >
+                                    <FilePdfBoxIcon :size="12" />
+                                    Aushang
+                                </button>
+                                <button
+                                    @click="router.push(`/finance/stations/${station.id}/edit`)"
                                     class="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100"
                                 >
                                     <PencilIcon :size="12" />
@@ -254,9 +182,5 @@ async function renderQr(el: HTMLCanvasElement | null, token: string) {
                 </tbody>
             </table>
         </div>
-        <p class="mt-3 text-xs text-slate-400">
-            Der Saldo ist eine Hilfsrechnung aus den Kassenbuch-Buchungen.
-            Maßgeblich ist der in pretix POS mit TSE erfasste Kassenbestand.
-        </p>
     </div>
 </template>

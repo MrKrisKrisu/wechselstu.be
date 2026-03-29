@@ -39,6 +39,8 @@ RUN apk add --no-cache \
     nginx \
     supervisor \
     curl \
+    xz \
+    qrencode \
     libpng-dev \
     libzip-dev \
     icu-dev \
@@ -48,6 +50,13 @@ RUN apk add --no-cache \
     zip \
     intl \
     pcntl
+
+# Install Typst
+RUN curl -fsSL https://github.com/typst/typst/releases/download/v0.14.2/typst-x86_64-unknown-linux-musl.tar.xz \
+    -o /tmp/typst.tar.xz \
+  && tar xJf /tmp/typst.tar.xz -C /tmp \
+  && mv /tmp/typst-x86_64-unknown-linux-musl/typst /usr/local/bin/typst \
+  && rm -rf /tmp/typst.tar.xz /tmp/typst-x86_64-unknown-linux-musl
 
 WORKDIR /var/www/html
 

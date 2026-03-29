@@ -23,6 +23,7 @@ Route::middleware('auth:sanctum')->prefix('finance')->group(function () {
     Route::get('/user', [AuthController::class, 'user']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
+    Route::get('/stations/{station}/sign', [FinanceStationController::class, 'sign']);
     Route::apiResource('stations', FinanceStationController::class);
 
     Route::get('/tickets', [FinanceTicketController::class, 'index']);

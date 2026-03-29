@@ -17,7 +17,7 @@ class Station extends Model
     protected static function booted(): void
     {
         static::creating(function (Station $station) {
-            $station->token = Str::upper(Str::random(8));
+            $station->token = Str::upper(Str::random(4));
         });
     }
 
