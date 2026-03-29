@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Finance;
 
 use App\Events\TicketCreated;
 use App\Http\Controllers\Controller;
+use App\Jobs\PrintTicketJob;
 use App\Models\Ticket;
 use App\Repositories\CashEntryRepository;
 use App\Repositories\Interfaces\TicketRepositoryInterface;
@@ -15,9 +16,11 @@ class TicketController extends Controller
 {
     public function __construct(
         private readonly TicketRepositoryInterface $tickets,
-        private readonly TicketService $ticketService,
-        private readonly CashEntryRepository $cashEntries,
-    ) {}
+        private readonly TicketService             $ticketService,
+        private readonly CashEntryRepository       $cashEntries,
+    )
+    {
+    }
 
     public function index(Request $request): JsonResponse
     {
@@ -56,5 +59,31 @@ class TicketController extends Controller
         $updated = $this->ticketService->completeTicket($ticket);
 
         return response()->json(['ticket' => TicketCreated::serializeTicket($updated)]);
+    }
+
+    public function print(Request $request, Ticket $ticket): JsonResponse
+    {
+        $request->validate([
+            'printer' => ['required', 'in:station,office'],
+        ]);
+
+        if ($request->input('printer') === 'station') {
+            $ip = $ticket->station->printer_ip;
+
+            if (empty($ip)) {
+                return response()->json(['message' => 'Dieser Kasse ist kein Drucker zugewiesen.'], 422);
+            }
+
+        } else {
+            $ip = config('printer.office_ip');
+
+            if (empty($ip)) {
+                return response()->json(['message' => 'Kein Bürodrucker konfiguriert (OFFICE_PRINTER_IP).'], 422);
+            }
+
+        }
+        PrintTicketJob::dispatch($ticket, $ip, $request->user()->name);
+
+        return response()->json(['message' => 'Druckauftrag gesendet.']);
     }
 }

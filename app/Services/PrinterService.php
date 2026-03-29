@@ -73,6 +73,11 @@ class PrinterService
         $this->send($this->buildEscPos($ticket), $ip);
     }
 
+    public function printToIp(Ticket $ticket, string $ip, ?string $printedBy = null): void
+    {
+        $this->send($this->buildEscPos($ticket, $printedBy), $ip);
+    }
+
     private function send(string $data, string $ip): void
     {
         $socket = @fsockopen($ip, self::PRINTER_PORT, $errno, $errstr, 5);
@@ -101,7 +106,7 @@ class PrinterService
         }
     }
 
-    private function buildEscPos(Ticket $ticket): string
+    private function buildEscPos(Ticket $ticket, ?string $printedBy = null): string
     {
         $out = self::INIT.self::CODEPAGE_WPC1252.self::LINE_SPACING_WIDE;
 
@@ -116,6 +121,10 @@ class PrinterService
 
         if ($ticket->type === TicketType::CashFull) {
             $out .= $this->encode("\nAbgeschöpft: _____________________________ EUR\n");
+        }
+
+        if ($printedBy !== null) {
+            $out .= $this->encode("\nGedruckt von: ".$printedBy."\n");
         }
 
         $out .= "\n\n".self::FEED_4.self::CUT_PARTIAL;

@@ -29,6 +29,7 @@ Route::middleware('auth:sanctum')->prefix('finance')->group(function () {
     Route::get('/tickets', [FinanceTicketController::class, 'index']);
     Route::patch('/tickets/{ticket}/accept', [FinanceTicketController::class, 'accept']);
     Route::patch('/tickets/{ticket}/complete', [FinanceTicketController::class, 'complete']);
+    Route::post('/tickets/{ticket}/print', [FinanceTicketController::class, 'print']);
 
     Route::get('/dashboard-access', [DashboardAccessController::class, 'index']);
     Route::post('/dashboard-access', [DashboardAccessController::class, 'store']);

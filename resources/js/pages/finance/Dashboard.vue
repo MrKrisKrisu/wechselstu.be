@@ -1,8 +1,11 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 import { onMounted, onUnmounted } from 'vue';
 import CashMultipleIcon from 'vue-material-design-icons/CashMultiple.vue';
+import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue';
 import ClipboardTextIcon from 'vue-material-design-icons/ClipboardText.vue';
 import CurrencyEurIcon from 'vue-material-design-icons/CurrencyEur.vue';
+import AccountArrowRightIcon from 'vue-material-design-icons/AccountArrowRight.vue';
+import PrinterIcon from 'vue-material-design-icons/Printer.vue';
 import { RouterLink } from 'vue-router';
 import { useFinanceChannel } from '@/composables/useEcho';
 import axios from '@/lib/axios';
@@ -48,6 +51,14 @@ async function completeTicket(id: string) {
         ticketStore.updateTicket(data.ticket ?? data);
     } catch (err) {
         console.error('Failed to complete ticket', err);
+    }
+}
+
+async function printTicket(id: string, printer: 'station' | 'office') {
+    try {
+        await axios.post(`/api/finance/tickets/${id}/print`, { printer });
+    } catch (err) {
+        console.error('Failed to print ticket', err);
     }
 }
 
@@ -161,9 +172,13 @@ function formatCents(cents: number): string {
                             </div>
                         </div>
                         <button
-                            @click="acceptTicket(ticket.id)"
                             class="mt-3 w-full rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-red-700"
+                            @click="acceptTicket(ticket.id)"
                         >
+                            <AccountArrowRightIcon
+                                :size="14"
+                                class="mr-1 inline-block"
+                            />
                             Übernehmen
                         </button>
                     </div>
@@ -252,11 +267,38 @@ function formatCents(cents: number): string {
                             Übernommen von: {{ ticket.assigned_user.name }}
                         </p>
                         <button
-                            @click="completeTicket(ticket.id)"
                             class="mt-3 w-full rounded-lg bg-amber-500 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-amber-600"
+                            @click="completeTicket(ticket.id)"
                         >
+                            <CheckCircleIcon
+                                :size="14"
+                                class="mr-1 inline-block"
+                            />
                             Erledigt
                         </button>
+                        <div class="mt-1.5 flex gap-1.5">
+                            <button
+                                v-if="ticket.station.printer_ip"
+                                class="flex-1 rounded-md bg-slate-100 px-2 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-200"
+                                @click="printTicket(ticket.id, 'station')"
+                            >
+                                <PrinterIcon
+                                    :size="12"
+                                    class="mr-0.5 inline-block"
+                                />
+                                Kasse
+                            </button>
+                            <button
+                                class="flex-1 rounded-md bg-slate-100 px-2 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-200"
+                                @click="printTicket(ticket.id, 'office')"
+                            >
+                                <PrinterIcon
+                                    :size="12"
+                                    class="mr-0.5 inline-block"
+                                />
+                                Büro
+                            </button>
+                        </div>
                     </div>
                     <p
                         v-if="ticketStore.acceptedTickets.length === 0"
@@ -316,6 +358,29 @@ function formatCents(cents: number): string {
                         >
                             Erledigt von: {{ ticket.assigned_user.name }}
                         </p>
+                        <div class="mt-2 flex gap-1.5">
+                            <button
+                                v-if="ticket.station.printer_ip"
+                                class="flex-1 rounded-md bg-slate-100 px-2 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-200"
+                                @click="printTicket(ticket.id, 'station')"
+                            >
+                                <PrinterIcon
+                                    :size="12"
+                                    class="mr-0.5 inline-block"
+                                />
+                                Kasse
+                            </button>
+                            <button
+                                class="flex-1 rounded-md bg-slate-100 px-2 py-1.5 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-200"
+                                @click="printTicket(ticket.id, 'office')"
+                            >
+                                <PrinterIcon
+                                    :size="12"
+                                    class="mr-0.5 inline-block"
+                                />
+                                Büro
+                            </button>
+                        </div>
                         <RouterLink
                             v-if="
                                 ticket.type !== 'other' &&

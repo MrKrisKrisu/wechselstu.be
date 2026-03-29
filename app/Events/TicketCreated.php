@@ -51,6 +51,7 @@ class TicketCreated implements ShouldBroadcast
                 'name' => $ticket->station->name,
                 'location' => $ticket->station->location,
                 'token' => $ticket->station->token,
+                'printer_ip' => $ticket->station->printer_ip,
             ],
             'denominations' => $ticket->denominations->map(fn ($d) => [
                 'id' => $d->id,
