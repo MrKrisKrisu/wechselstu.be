@@ -1,9 +1,10 @@
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
+<script lang="ts" setup>
+import { onMounted, ref } from 'vue';
 import CheckIcon from 'vue-material-design-icons/Check.vue';
 import ContentCopyIcon from 'vue-material-design-icons/ContentCopy.vue';
 import FilePdfBoxIcon from 'vue-material-design-icons/FilePdfBox.vue';
 import PencilIcon from 'vue-material-design-icons/Pencil.vue';
+import AlertIcon from 'vue-material-design-icons/Alert.vue';
 import PlusIcon from 'vue-material-design-icons/Plus.vue';
 import TrashCanIcon from 'vue-material-design-icons/TrashCan.vue';
 import { useRouter } from 'vue-router';
@@ -48,7 +49,9 @@ async function deleteStation(station: Station) {
 }
 
 async function copyLink(station: Station) {
-    await navigator.clipboard.writeText(`${window.location.origin}/s/${station.token}`);
+    await navigator.clipboard.writeText(
+        `${window.location.origin}/s/${station.token}`,
+    );
     copiedId.value = station.id;
     setTimeout(() => {
         copiedId.value = null;
@@ -57,10 +60,15 @@ async function copyLink(station: Station) {
 
 async function downloadSign(station: Station) {
     try {
-        const response = await axios.get(`/api/finance/stations/${station.id}/sign`, {
-            responseType: 'blob',
-        });
-        const url = URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+        const response = await axios.get(
+            `/api/finance/stations/${station.id}/sign`,
+            {
+                responseType: 'blob',
+            },
+        );
+        const url = URL.createObjectURL(
+            new Blob([response.data], { type: 'application/pdf' }),
+        );
         const a = document.createElement('a');
         a.href = url;
         a.download = `station-sign-${station.token}.pdf`;
@@ -79,8 +87,8 @@ async function downloadSign(station: Station) {
                 <h1 class="text-2xl font-bold text-slate-900">Kassen</h1>
             </div>
             <button
-                @click="router.push('/finance/stations/create')"
                 class="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-slate-700"
+                @click="router.push('/finance/stations/create')"
             >
                 <PlusIcon :size="16" />
                 Neue Kasse
@@ -94,7 +102,9 @@ async function downloadSign(station: Station) {
             {{ error }}
         </div>
 
-        <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+        <div
+            class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+        >
             <div v-if="loading" class="p-8 text-center text-sm text-slate-400">
                 Lädt...
             </div>
@@ -107,16 +117,24 @@ async function downloadSign(station: Station) {
             <table v-else class="w-full text-sm">
                 <thead>
                     <tr class="border-b border-slate-200 bg-slate-50">
-                        <th class="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                        <th
+                            class="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase"
+                        >
                             Name
                         </th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                        <th
+                            class="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase"
+                        >
                             Standort
                         </th>
-                        <th class="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                        <th
+                            class="px-4 py-3 text-left text-xs font-semibold tracking-wide text-slate-500 uppercase"
+                        >
                             Token
                         </th>
-                        <th class="px-4 py-3 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase">
+                        <th
+                            class="px-4 py-3 text-right text-xs font-semibold tracking-wide text-slate-500 uppercase"
+                        >
                             Aktionen
                         </th>
                     </tr>
@@ -128,50 +146,69 @@ async function downloadSign(station: Station) {
                         class="hover:bg-slate-50"
                     >
                         <td class="px-4 py-3 font-medium text-slate-900">
-                            {{ station.name }}
+                            <div class="flex items-center gap-2">
+                                {{ station.name }}
+                                <span
+                                    v-if="!station.printer_ip"
+                                    class="flex items-center gap-1 rounded-md bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-700"
+                                    title="Kein Drucker konfiguriert"
+                                >
+                                    <AlertIcon :size="12" />
+                                    Kein Drucker konfiguriert
+                                </span>
+                            </div>
                         </td>
                         <td class="px-4 py-3 text-slate-600">
                             {{ station.location }}
                         </td>
                         <td class="px-4 py-3">
-                            <code class="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-700">
+                            <code
+                                class="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-700"
+                            >
                                 {{ station.token }}
                             </code>
                         </td>
                         <td class="px-4 py-3">
                             <div class="flex items-center justify-end gap-2">
                                 <button
-                                    @click="copyLink(station)"
-                                    class="flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors"
                                     :class="
                                         copiedId === station.id
                                             ? 'border-green-200 bg-green-50 text-green-700'
                                             : 'border-slate-200 text-slate-600 hover:bg-slate-100'
                                     "
+                                    class="flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-colors"
                                     title="Link kopieren"
+                                    @click="copyLink(station)"
                                 >
-                                    <CheckIcon v-if="copiedId === station.id" :size="12" />
+                                    <CheckIcon
+                                        v-if="copiedId === station.id"
+                                        :size="12"
+                                    />
                                     <ContentCopyIcon v-else :size="12" />
                                     Link
                                 </button>
                                 <button
-                                    @click="downloadSign(station)"
                                     class="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100"
                                     title="Aushang als PDF herunterladen"
+                                    @click="downloadSign(station)"
                                 >
                                     <FilePdfBoxIcon :size="12" />
                                     Aushang
                                 </button>
                                 <button
-                                    @click="router.push(`/finance/stations/${station.id}/edit`)"
                                     class="flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-100"
+                                    @click="
+                                        router.push(
+                                            `/finance/stations/${station.id}/edit`,
+                                        )
+                                    "
                                 >
                                     <PencilIcon :size="12" />
                                     Bearbeiten
                                 </button>
                                 <button
-                                    @click="deleteStation(station)"
                                     class="flex items-center gap-1 rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-600 transition-colors hover:bg-red-50"
+                                    @click="deleteStation(station)"
                                 >
                                     <TrashCanIcon :size="12" />
                                     Löschen
