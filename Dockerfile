@@ -46,7 +46,8 @@ RUN apk add --no-cache \
  && docker-php-ext-install \
     pdo_mysql \
     zip \
-    intl
+    intl \
+    pcntl
 
 WORKDIR /var/www/html
 
