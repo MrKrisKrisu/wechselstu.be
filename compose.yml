@@ -3,16 +3,16 @@ services:
     image: ghcr.io/mrkriskrisu/wechselstu.be:latest
     env_file: .env
     environment:
-      DB_CONNECTION: mysql
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_DATABASE: wechselstube
-      DB_USERNAME: wechselstube
-      DB_PASSWORD: secret
-      SESSION_DRIVER: database
-      CACHE_STORE: database
-      QUEUE_CONNECTION: database
-      BROADCAST_CONNECTION: reverb
+      DB_CONNECTION: ${DB_CONNECTION:-mariadb}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_DATABASE: ${DB_DATABASE:-wechselstube}
+      DB_USERNAME: ${DB_USERNAME:-wechselstube}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
+      SESSION_DRIVER: ${SESSION_DRIVER:-database}
+      CACHE_STORE: ${CACHE_STORE:-database}
+      QUEUE_CONNECTION: ${QUEUE_CONNECTION:-database}
+      BROADCAST_CONNECTION: ${BROADCAST_CONNECTION:-reverb}
     depends_on:
       db:
         condition: service_healthy
@@ -23,7 +23,7 @@ services:
     labels:
       - 'traefik.enable=true'
       - 'traefik.docker.network=traefik'
-      - 'traefik.http.routers.wechselstube.rule=Host(`wechselstu.be`)'
+      - 'traefik.http.routers.wechselstube.rule=Host(`wechselstu.be`) || Host(`grossgeld-zu-kleingeld24.de`) || Host(`bargeldabschoepfung24.de`) || Host(`bargelddrama24.de`)'
       - 'traefik.http.routers.wechselstube.entrypoints=websecure'
       - 'traefik.http.routers.wechselstube.tls.certresolver=letsencrypt'
       - 'traefik.http.services.wechselstube.loadbalancer.server.port=80'
@@ -33,12 +33,12 @@ services:
     command: php artisan reverb:start --host=0.0.0.0 --port=8080
     env_file: .env
     environment:
-      DB_CONNECTION: mysql
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_DATABASE: wechselstube
-      DB_USERNAME: wechselstube
-      DB_PASSWORD: secret
+      DB_CONNECTION: ${DB_CONNECTION:-mariadb}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_DATABASE: ${DB_DATABASE:-wechselstube}
+      DB_USERNAME: ${DB_USERNAME:-wechselstube}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
     depends_on:
       db:
         condition: service_healthy
@@ -59,12 +59,12 @@ services:
     command: php artisan queue:work --tries=3 --timeout=90
     env_file: .env
     environment:
-      DB_CONNECTION: mysql
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_DATABASE: wechselstube
-      DB_USERNAME: wechselstube
-      DB_PASSWORD: secret
+      DB_CONNECTION: ${DB_CONNECTION:-mariadb}
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_DATABASE: ${DB_DATABASE:-wechselstube}
+      DB_USERNAME: ${DB_USERNAME:-wechselstube}
+      DB_PASSWORD: ${DB_PASSWORD:-secret}
     depends_on:
       db:
         condition: service_healthy
@@ -75,10 +75,10 @@ services:
   db:
     image: mariadb:12
     environment:
-      MYSQL_ROOT_PASSWORD: rootsecret
-      MYSQL_DATABASE: wechselstube
-      MYSQL_USER: wechselstube
-      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootsecret}
+      MYSQL_DATABASE: ${DB_DATABASE:-wechselstube}
+      MYSQL_USER: ${DB_USERNAME:-wechselstube}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:

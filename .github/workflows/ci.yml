@@ -59,7 +59,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.5'
           extensions: mbstring, ctype, fileinfo, json, openssl, pdo, tokenizer, xml
 
       - name: Validate composer.json and composer.lock
@@ -158,7 +158,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.5'
           extensions: mbstring, ctype, fileinfo, json, openssl, pdo, tokenizer, xml
 
       - name: Download vendor directory
@@ -182,7 +182,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.5'
           extensions: mbstring, ctype, fileinfo, json, openssl, pdo, simplexml, sodium, tokenizer, xml
 
       - name: Download vendor directory
@@ -245,7 +245,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.5'
           extensions: mbstring, ctype, fileinfo, json, openssl, pdo, pdo_mysql, simplexml, sodium, tokenizer, xml
 
       - name: Download vendor directory
@@ -305,7 +305,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.4'
+          php-version: '8.5'
           extensions: mbstring, ctype, fileinfo, json, openssl, pdo, simplexml, sodium, tokenizer, xml
 
       - name: Download vendor directory

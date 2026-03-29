@@ -44,12 +44,9 @@ RUN apk add --no-cache \
     icu-dev \
     oniguruma-dev \
  && docker-php-ext-install \
-    pdo \
     pdo_mysql \
-    mbstring \
     zip \
-    intl \
-    opcache
+    intl
 
 WORKDIR /var/www/html
 
@@ -61,7 +58,12 @@ COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
 COPY docker/entrypoint.sh /entrypoint.sh
 
-RUN chmod +x /entrypoint.sh \
+RUN mkdir -p bootstrap/cache \
+        storage/framework/cache \
+        storage/framework/sessions \
+        storage/framework/views \
+        storage/logs \
+ && chmod +x /entrypoint.sh \
  && chown -R www-data:www-data storage bootstrap/cache \
  && chmod -R 775 storage bootstrap/cache
 
