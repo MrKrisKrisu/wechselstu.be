@@ -118,7 +118,7 @@ class PrinterService
             $out .= $this->encode("\nAbgeschöpft: _____________________________ EUR\n");
         }
 
-        $out .= self::FEED_4.self::CUT_PARTIAL;
+        $out .= "\n\n".self::FEED_4.self::CUT_PARTIAL;
 
         return $out;
     }
