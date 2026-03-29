@@ -3,6 +3,7 @@ export interface Station {
     name: string;
     location: string;
     token: string;
+    printer_ip: string | null;
     created_at?: string;
     balance_cents?: number;
 }

@@ -55,33 +55,30 @@ class PrinterService
         1000 => ['10,00 Schein', 1000],
     ];
 
-    private string $printerIp;
-
-    private int $printerPort;
-
-    public function __construct()
-    {
-        $this->printerIp = config('services.printer.ip', '');
-        $this->printerPort = (int) config('services.printer.port', 9100);
-    }
+    private const PRINTER_PORT = 9100;
 
     public function print(Ticket $ticket): void
     {
-        if (empty($this->printerIp)) {
-            Log::warning('Printer IP not configured, skipping print job', ['ticket_id' => $ticket->id]);
+        $ip = $ticket->station->printer_ip;
+
+        if (empty($ip)) {
+            Log::warning('No printer IP configured for station, skipping print job', [
+                'ticket_id' => $ticket->id,
+                'station_id' => $ticket->station->id,
+            ]);
 
             return;
         }
 
-        $this->send($this->buildEscPos($ticket));
+        $this->send($this->buildEscPos($ticket), $ip);
     }
 
-    private function send(string $data): void
+    private function send(string $data, string $ip): void
     {
-        $socket = @fsockopen($this->printerIp, $this->printerPort, $errno, $errstr, 5);
+        $socket = @fsockopen($ip, self::PRINTER_PORT, $errno, $errstr, 5);
 
         if (! $socket) {
-            throw new RuntimeException("Cannot connect to printer at {$this->printerIp}:{$this->printerPort}: {$errstr} ({$errno})");
+            throw new RuntimeException("Cannot connect to printer at {$ip}:".self::PRINTER_PORT.": {$errstr} ({$errno})");
         }
 
         try {

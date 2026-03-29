@@ -12,6 +12,7 @@ const isEdit = computed(() => !!id.value);
 
 const name = ref('');
 const location = ref('');
+const printerIp = ref('');
 const loading = ref(false);
 const loadingData = ref(false);
 const errors = ref<Record<string, string[]>>({});
@@ -28,6 +29,7 @@ onMounted(async () => {
             const station = data.station ?? data;
             name.value = station.name;
             location.value = station.location;
+            printerIp.value = station.printer_ip ?? '';
         } catch {
             router.push('/finance/stations');
         } finally {
@@ -46,12 +48,14 @@ async function handleSubmit() {
             await axios.put(`/api/finance/stations/${id.value}`, {
                 name: name.value,
                 location: location.value,
+                printer_ip: printerIp.value || null,
             });
             successMessage.value = 'Kasse erfolgreich gespeichert.';
         } else {
             await axios.post('/api/finance/stations', {
                 name: name.value,
                 location: location.value,
+                printer_ip: printerIp.value || null,
             });
             router.push('/finance/stations');
         }
@@ -156,6 +160,32 @@ function fieldError(field: string): string | null {
                     class="mt-1 text-xs text-red-600"
                 >
                     {{ fieldError('location') }}
+                </p>
+            </div>
+
+            <div>
+                <label
+                    for="printer_ip"
+                    class="mb-1 block text-sm font-medium text-slate-700"
+                    >Drucker-IP</label
+                >
+                <input
+                    id="printer_ip"
+                    v-model="printerIp"
+                    type="text"
+                    class="w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 transition-colors focus:ring-1 focus:outline-none"
+                    :class="
+                        fieldError('printer_ip')
+                            ? 'border-red-300 focus:border-red-400 focus:ring-red-400'
+                            : 'border-slate-300 focus:border-slate-500 focus:ring-slate-500'
+                    "
+                    placeholder="192.168.1.100"
+                />
+                <p
+                    v-if="fieldError('printer_ip')"
+                    class="mt-1 text-xs text-red-600"
+                >
+                    {{ fieldError('printer_ip') }}
                 </p>
             </div>
 

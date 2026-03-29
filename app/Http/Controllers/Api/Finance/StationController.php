@@ -35,6 +35,7 @@ class StationController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'location' => ['required', 'string', 'max:200'],
+            'printer_ip' => ['nullable', 'string', 'ip'],
         ]);
 
         $station = $this->stations->create($validated);
@@ -52,6 +53,7 @@ class StationController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
             'location' => ['required', 'string', 'max:200'],
+            'printer_ip' => ['nullable', 'string', 'ip'],
         ]);
 
         $station = $this->stations->update($station, $validated);
@@ -83,6 +85,7 @@ class StationController extends Controller
             'name' => $station->name,
             'location' => $station->location,
             'token' => $station->token,
+            'printer_ip' => $station->printer_ip,
             'created_at' => $station->created_at->toIso8601String(),
         ];
     }

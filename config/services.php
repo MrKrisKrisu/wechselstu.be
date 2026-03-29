@@ -35,11 +35,6 @@ return [
         ],
     ],
 
-    'printer' => [
-        'ip' => env('PRINTER_IP', ''),
-        'port' => env('PRINTER_PORT', 9100),
-    ],
-
     'matrix' => [
         'homeserver_url' => env('MATRIX_HOMESERVER_URL', ''),
         'access_token' => env('MATRIX_ACCESS_TOKEN', ''),
