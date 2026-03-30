@@ -4,6 +4,13 @@ A simple system to help finance teams manage cash registers at events like the G
 By scanning a QR code, staff can report when a register is full or request change, without logging in.
 The finance team handles requests in a real-time dashboard.
 
+## Screenshots
+
+|                                        |                                        |
+|----------------------------------------|----------------------------------------|
+| ![](docs/screenshots/customerpage.png) | ![](docs/screenshots/ticketstatus.png) |
+| ![](docs/screenshots/dashboard.png)    | ![](docs/screenshots/stations.png)     |
+
 ## Features
 
 - **QR code access**: Each register has a unique token-protected URL, no login required.
