@@ -1,12 +1,11 @@
 <script lang="ts" setup>
 import { onMounted, onUnmounted } from 'vue';
+import AccountArrowRightIcon from 'vue-material-design-icons/AccountArrowRight.vue';
 import CashMultipleIcon from 'vue-material-design-icons/CashMultiple.vue';
 import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue';
 import ClipboardTextIcon from 'vue-material-design-icons/ClipboardText.vue';
 import CurrencyEurIcon from 'vue-material-design-icons/CurrencyEur.vue';
-import AccountArrowRightIcon from 'vue-material-design-icons/AccountArrowRight.vue';
 import PrinterIcon from 'vue-material-design-icons/Printer.vue';
-import { RouterLink } from 'vue-router';
 import { useFinanceChannel } from '@/composables/useEcho';
 import axios from '@/lib/axios';
 import { useTicketStore } from '@/stores/tickets';
@@ -381,16 +380,6 @@ function formatCents(cents: number): string {
                                 Büro
                             </button>
                         </div>
-                        <RouterLink
-                            v-if="
-                                ticket.type !== 'other' &&
-                                ticket.has_cash_entry === false
-                            "
-                            :to="{ name: 'finance.kassenbuch' }"
-                            class="mt-2 block rounded-md bg-amber-100 px-2.5 py-1.5 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-200"
-                        >
-                            Noch keine Kassenbuchung &rarr;
-                        </RouterLink>
                     </div>
                     <p
                         v-if="ticketStore.doneTickets.length === 0"

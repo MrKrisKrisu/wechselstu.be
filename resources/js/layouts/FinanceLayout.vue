@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import CashRegisterIcon from 'vue-material-design-icons/CashRegister.vue';
 import CloseIcon from 'vue-material-design-icons/Close.vue';
 import DomainIcon from 'vue-material-design-icons/Domain.vue';
 import HomeIcon from 'vue-material-design-icons/Home.vue';
@@ -19,12 +18,6 @@ const sidebarOpen = ref(false);
 const navItems = [
     { name: 'Dashboard', to: '/finance', icon: HomeIcon, exact: true },
     { name: 'Kassen', to: '/finance/stations', icon: DomainIcon, exact: false },
-    {
-        name: 'Kassenbuch',
-        to: '/finance/kassenbuch',
-        icon: CashRegisterIcon,
-        exact: false,
-    },
     {
         name: 'Monitor-Zugang',
         to: '/finance/dashboard-access',

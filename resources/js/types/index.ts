@@ -5,7 +5,6 @@ export interface Station {
     token: string;
     printer_ip: string | null;
     created_at?: string;
-    balance_cents?: number;
 }
 
 export interface TicketDenomination {
@@ -31,7 +30,6 @@ export interface Ticket {
     accepted_at: string | null;
     done_at: string | null;
     created_at: string;
-    has_cash_entry?: boolean;
 }
 
 export interface DashboardAccess {

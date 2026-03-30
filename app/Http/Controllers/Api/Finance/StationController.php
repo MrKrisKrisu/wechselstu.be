@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\Api\Finance;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\StationResource;
 use App\Models\Station;
 use App\Repositories\StationRepository;
 use App\Services\StationSignService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Http\Response;
 
 class StationController extends Controller
@@ -17,20 +19,12 @@ class StationController extends Controller
         private readonly StationSignService $signService,
     ) {}
 
-    public function index(): JsonResponse
+    public function index(): AnonymousResourceCollection
     {
-        $stations = $this->stations->all();
-        $balances = $this->stations->balances();
-
-        return response()->json([
-            'stations' => $stations->map(fn ($s) => array_merge(
-                $this->serialize($s),
-                ['balance_cents' => (int) ($balances[$s->id] ?? 0)],
-            ))->values(),
-        ]);
+        return StationResource::collection($this->stations->all());
     }
 
-    public function store(Request $request): JsonResponse
+    public function store(Request $request): StationResource
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
@@ -38,17 +32,15 @@ class StationController extends Controller
             'printer_ip' => ['nullable', 'string', 'ip'],
         ]);
 
-        $station = $this->stations->create($validated);
-
-        return response()->json(['station' => $this->serialize($station)], 201);
+        return new StationResource($this->stations->create($validated));
     }
 
-    public function show(Station $station): JsonResponse
+    public function show(Station $station): StationResource
     {
-        return response()->json(['station' => $this->serialize($station)]);
+        return new StationResource($station);
     }
 
-    public function update(Request $request, Station $station): JsonResponse
+    public function update(Request $request, Station $station): StationResource
     {
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:100'],
@@ -56,9 +48,7 @@ class StationController extends Controller
             'printer_ip' => ['nullable', 'string', 'ip'],
         ]);
 
-        $station = $this->stations->update($station, $validated);
-
-        return response()->json(['station' => $this->serialize($station)]);
+        return new StationResource($this->stations->update($station, $validated));
     }
 
     public function sign(Station $station): Response
@@ -76,17 +66,5 @@ class StationController extends Controller
         $this->stations->delete($station);
 
         return response()->json(null, 204);
-    }
-
-    private function serialize(Station $station): array
-    {
-        return [
-            'id' => $station->id,
-            'name' => $station->name,
-            'location' => $station->location,
-            'token' => $station->token,
-            'printer_ip' => $station->printer_ip,
-            'created_at' => $station->created_at->toIso8601String(),
-        ];
     }
 }
