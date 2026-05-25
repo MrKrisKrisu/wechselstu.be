@@ -49,9 +49,9 @@ async function createAccess() {
         const access = data.access ?? data;
         accesses.value.unshift(access);
         newLabel.value = '';
-    } catch (err: any) {
-        createError.value =
-            err.response?.data?.message ?? 'Fehler beim Erstellen.';
+    } catch (err: unknown) {
+        const e = err as { response?: { data?: { message?: string } } };
+        createError.value = e.response?.data?.message ?? 'Fehler beim Erstellen.';
     } finally {
         creating.value = false;
     }
@@ -196,7 +196,7 @@ async function copyToClipboard(text: string, id: string) {
 
                 <div>
                     <label
-                        class="mb-1 block flex items-center gap-1 text-xs font-medium text-slate-500"
+                        class="mb-1 flex items-center gap-1 text-xs font-medium text-slate-500"
                     >
                         <MonitorIcon :size="12" />
                         Monitor-URL

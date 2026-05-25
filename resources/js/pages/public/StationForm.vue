@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+<script lang="ts" setup>
+import { computed, onMounted, ref } from 'vue';
 import CashMultipleIcon from 'vue-material-design-icons/CashMultiple.vue';
 import ClipboardTextIcon from 'vue-material-design-icons/ClipboardText.vue';
 import CurrencyEurIcon from 'vue-material-design-icons/CurrencyEur.vue';
@@ -53,26 +53,26 @@ const corporateNames: Record<string, string[]> = {
     default: [
         'GPN Bargeld-Infrastruktur-Komitee e.V.',
         'Gulaschprogrammiernacht Finance Division™',
-        'Topf & Thaler GmbH · Professionelles Kassenmanagement',
-        'GPN Münzverwaltung AG · Liquid Assets since 2012',
+        'Topf & Thaler GmbH / Professionelles Kassenmanagement',
+        'GPN Münzverwaltung AG / Liquid Assets since 2012',
     ],
     cash_full: [
-        'GPN KassenVoll-Notfall-Portal™ · Bargeld-Incident-Response',
-        'Topf leer, Kasse voll® · GPN Emergency Finance Response',
+        'GPN KassenVoll-Notfall-Portal™ / Bargeld-Incident-Response',
+        'Topf leer, Kasse voll® / GPN Emergency Finance Response',
         'Gulaschprogrammiernacht Kassenüberlauf-Meldestelle™',
-        'GPN Cash-Capacity-Alerting-Suite® · Scharf & Schnell',
+        'GPN Cash-Capacity-Alerting-Suite® / Scharf & Schnell',
     ],
     change_request: [
-        'GPN Kleingeld-Logistik-Hub™ · Münzen as a Service',
-        'Wechselstu.be® · Powered by Gulasch & Kaffeesatz',
+        'GPN Kleingeld-Logistik-Hub™ / Münzen as a Service',
+        'Wechselstu.be® / Powered by Gulasch & Kaffeesatz',
         'Gulaschprogrammiernacht Münz-Beschaffungs-Portal™',
-        'GPN WechselGeld-Fulfillment-Suite® · Coin Division',
+        'GPN WechselGeld-Fulfillment-Suite® / Coin Division',
     ],
     other: [
-        'GPN Finanz-Kommunikations-Kanal™ · Sonstiges Division',
-        'Gulaschprogrammiernacht Kassen-Helpdesk® · Allgemein',
-        'GPN Bargeld-Support-Infrastruktur™ · Catch-all Edition',
-        'Topf & Thaler GmbH · Sonstige Geldangelegenheiten',
+        'GPN Finanz-Kommunikations-Kanal™ / Sonstiges Division',
+        'Gulaschprogrammiernacht Kassen-Helpdesk® / Allgemein',
+        'GPN Bargeld-Support-Infrastruktur™ / Catch-all Edition',
+        'Topf & Thaler GmbH / Sonstige Geldangelegenheiten',
     ],
 };
 
@@ -174,7 +174,7 @@ async function submit(): Promise<void> {
                     <p
                         class="mb-1 font-heading text-[10px] font-bold tracking-[0.3em] text-gpn-orange uppercase"
                     >
-                        GPN24 · Kassenmeldung
+                        GPN24 / Kassenmeldung
                     </p>
                     <h1
                         class="font-heading text-2xl font-black tracking-tight text-gpn-white"
@@ -204,8 +204,8 @@ async function submit(): Promise<void> {
                             'other',
                         ] as TicketType[]"
                         :key="type"
-                        type="button"
                         class="group w-full rounded-lg border-2 border-[#e0dedd] bg-white p-5 text-left transition-all hover:border-gpn-orange hover:bg-[#fdf2ec]"
+                        type="button"
                         @click="selectedType = type"
                     >
                         <div class="flex items-start gap-4">
@@ -245,8 +245,8 @@ async function submit(): Promise<void> {
             <div v-else class="mx-auto max-w-xl px-6 py-8">
                 <button
                     v-if="!typeFromQuery"
-                    type="button"
                     class="mb-6 flex items-center gap-1 text-xs tracking-widest text-gpn-gray uppercase transition-colors hover:text-gpn-black"
+                    type="button"
                     @click="selectedType = null"
                 >
                     ← Zurück zur Auswahl
@@ -264,7 +264,7 @@ async function submit(): Promise<void> {
                     </p>
                 </div>
 
-                <form @submit.prevent="submit" class="space-y-5">
+                <form class="space-y-5" @submit.prevent="submit">
                     <template v-if="selectedType === 'cash_full'">
                         <div
                             class="rounded-lg border border-[#f2c4a3] bg-[#fdf2ec] p-4"
@@ -283,9 +283,9 @@ async function submit(): Promise<void> {
                             </label>
                             <textarea
                                 v-model="message"
-                                rows="3"
-                                placeholder="Weitere Informationen (optional)..."
                                 class="w-full resize-none rounded-lg border border-[#d4d0ce] bg-white px-4 py-3 text-sm text-gpn-black placeholder-gpn-gray/60 transition focus:border-gpn-orange focus:ring-2 focus:ring-gpn-orange/20 focus:outline-none"
+                                placeholder="Weitere Informationen (optional)..."
+                                rows="3"
                             />
                         </div>
                     </template>
@@ -314,9 +314,9 @@ async function submit(): Promise<void> {
                             </label>
                             <textarea
                                 v-model="message"
-                                rows="2"
-                                placeholder="Weitere Informationen (optional)..."
                                 class="w-full resize-none rounded-lg border border-[#d4d0ce] bg-white px-4 py-3 text-sm text-gpn-black placeholder-gpn-gray/60 transition focus:border-gpn-orange focus:ring-2 focus:ring-gpn-orange/20 focus:outline-none"
+                                placeholder="Weitere Informationen (optional)..."
+                                rows="2"
                             />
                         </div>
                     </template>
@@ -331,10 +331,10 @@ async function submit(): Promise<void> {
                             </label>
                             <textarea
                                 v-model="otherText"
-                                rows="5"
+                                class="w-full resize-none rounded-lg border border-[#d4d0ce] bg-white px-4 py-3 text-sm text-gpn-black placeholder-gpn-gray/60 transition focus:border-gpn-orange focus:ring-2 focus:ring-gpn-orange/20 focus:outline-none"
                                 placeholder="Bitte beschreibe dein Anliegen ausführlich..."
                                 required
-                                class="w-full resize-none rounded-lg border border-[#d4d0ce] bg-white px-4 py-3 text-sm text-gpn-black placeholder-gpn-gray/60 transition focus:border-gpn-orange focus:ring-2 focus:ring-gpn-orange/20 focus:outline-none"
+                                rows="5"
                             />
                         </div>
                     </template>
@@ -347,9 +347,9 @@ async function submit(): Promise<void> {
                     </div>
 
                     <button
-                        type="submit"
                         :disabled="submitting"
                         class="w-full rounded-lg bg-gpn-orange py-4 font-heading text-sm font-black tracking-[0.15em] text-white uppercase shadow-lg transition-colors hover:bg-[#c94e0a] disabled:cursor-not-allowed disabled:opacity-60"
+                        type="submit"
                     >
                         <span v-if="submitting">
                             <span
@@ -365,15 +365,6 @@ async function submit(): Promise<void> {
                         >
                         <span v-else>Nachricht senden</span>
                     </button>
-
-                    <p
-                        class="text-center text-[10px] tracking-widest text-gpn-gray/60 uppercase"
-                    >
-                        256-Bit-verschlüsselt · DSGVO-konform · ISO
-                        9001:2025-zertifiziert · TLS 1.3 · Zero-Trust ·
-                        ITIL-v4-prozessiert · blockchain-ready · KI-optimiert ·
-                        nachhaltig · barrierefrei · agil
-                    </p>
                 </form>
             </div>
         </template>

@@ -1,6 +1,14 @@
 import type { Auth } from '@/types/auth';
 
-// Extend ImportMeta interface for Vite...
+declare global {
+    interface Window {
+        __APP_CONFIG__?: {
+            ticketType: string | null;
+            isMainDomain: boolean;
+        };
+    }
+}
+
 declare module 'vite/client' {
     interface ImportMetaEnv {
         readonly VITE_APP_NAME: string;

@@ -1,5 +1,5 @@
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+<script lang="ts" setup>
+import { computed, onMounted, ref } from 'vue';
 import ArrowLeftIcon from 'vue-material-design-icons/ArrowLeft.vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from '@/lib/axios';
@@ -26,7 +26,7 @@ onMounted(async () => {
             const { data } = await axios.get(
                 `/api/finance/stations/${id.value}`,
             );
-            const station = data.station ?? data;
+            const station = data.data;
             name.value = station.name;
             location.value = station.location;
             printerIp.value = station.printer_ip ?? '';
@@ -59,9 +59,15 @@ async function handleSubmit() {
             });
             router.push('/finance/stations');
         }
-    } catch (err: any) {
-        if (err.response?.status === 422) {
-            errors.value = err.response.data?.errors ?? {};
+    } catch (err: unknown) {
+        const e = err as {
+            response?: {
+                status: number;
+                data?: { errors?: Record<string, string[]> };
+            };
+        };
+        if (e.response?.status === 422) {
+            errors.value = e.response.data?.errors ?? {};
         } else {
             errors.value = {
                 general: ['Ein unbekannter Fehler ist aufgetreten.'],
@@ -80,8 +86,8 @@ function fieldError(field: string): string | null {
 <template>
     <div class="max-w-xl p-6">
         <button
-            @click="router.push('/finance/stations')"
             class="mb-6 flex items-center gap-2 text-sm text-slate-500 transition-colors hover:text-slate-900"
+            @click="router.push('/finance/stations')"
         >
             <ArrowLeftIcon :size="16" />
             Zurück zur Kassenliste
@@ -95,8 +101,8 @@ function fieldError(field: string): string | null {
 
         <form
             v-else
-            @submit.prevent="handleSubmit"
             class="space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+            @submit.prevent="handleSubmit"
         >
             <div
                 v-if="errors.general"
@@ -114,22 +120,22 @@ function fieldError(field: string): string | null {
 
             <div>
                 <label
-                    for="name"
                     class="mb-1 block text-sm font-medium text-slate-700"
+                    for="name"
                     >Name</label
                 >
                 <input
                     id="name"
                     v-model="name"
-                    type="text"
-                    required
-                    class="w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 transition-colors focus:ring-1 focus:outline-none"
                     :class="
                         fieldError('name')
                             ? 'border-red-300 focus:border-red-400 focus:ring-red-400'
                             : 'border-slate-300 focus:border-slate-500 focus:ring-slate-500'
                     "
+                    class="w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 transition-colors focus:ring-1 focus:outline-none"
                     placeholder="Tschunk Bar"
+                    required
+                    type="text"
                 />
                 <p v-if="fieldError('name')" class="mt-1 text-xs text-red-600">
                     {{ fieldError('name') }}
@@ -138,22 +144,22 @@ function fieldError(field: string): string | null {
 
             <div>
                 <label
-                    for="location"
                     class="mb-1 block text-sm font-medium text-slate-700"
+                    for="location"
                     >Standort</label
                 >
                 <input
                     id="location"
                     v-model="location"
-                    type="text"
-                    required
-                    class="w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 transition-colors focus:ring-1 focus:outline-none"
                     :class="
                         fieldError('location')
                             ? 'border-red-300 focus:border-red-400 focus:ring-red-400'
                             : 'border-slate-300 focus:border-slate-500 focus:ring-slate-500'
                     "
+                    class="w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 transition-colors focus:ring-1 focus:outline-none"
                     placeholder="Außenbar"
+                    required
+                    type="text"
                 />
                 <p
                     v-if="fieldError('location')"
@@ -165,21 +171,21 @@ function fieldError(field: string): string | null {
 
             <div>
                 <label
-                    for="printer_ip"
                     class="mb-1 block text-sm font-medium text-slate-700"
+                    for="printer_ip"
                     >Drucker-IP</label
                 >
                 <input
                     id="printer_ip"
                     v-model="printerIp"
-                    type="text"
-                    class="w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 transition-colors focus:ring-1 focus:outline-none"
                     :class="
                         fieldError('printer_ip')
                             ? 'border-red-300 focus:border-red-400 focus:ring-red-400'
                             : 'border-slate-300 focus:border-slate-500 focus:ring-slate-500'
                     "
+                    class="w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 transition-colors focus:ring-1 focus:outline-none"
                     placeholder="192.168.1.100"
+                    type="text"
                 />
                 <p
                     v-if="fieldError('printer_ip')"
@@ -191,17 +197,17 @@ function fieldError(field: string): string | null {
 
             <div class="flex items-center gap-3 pt-2">
                 <button
-                    type="submit"
                     :disabled="loading"
                     class="rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                    type="submit"
                 >
                     <span v-if="loading">Speichern...</span>
                     <span v-else>{{ isEdit ? 'Speichern' : 'Erstellen' }}</span>
                 </button>
                 <button
+                    class="rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
                     type="button"
                     @click="router.push('/finance/stations')"
-                    class="rounded-lg border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
                 >
                     Abbrechen
                 </button>

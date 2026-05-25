@@ -27,7 +27,7 @@ async function loadStations() {
 
     try {
         const { data } = await axios.get('/api/finance/stations');
-        stations.value = data.stations ?? data;
+        stations.value = data.data;
     } catch {
         error.value = 'Fehler beim Laden der Kassen.';
     } finally {
