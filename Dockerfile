@@ -40,7 +40,6 @@ RUN apk add --no-cache \
     supervisor \
     curl \
     xz \
-    qrencode \
     libpng-dev \
     libzip-dev \
     icu-dev \

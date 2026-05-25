@@ -20,7 +20,7 @@ defineProps<{
                             >Zertifiziert</span
                         >
                         <span class="text-[8px] tracking-wider text-[#8a8280]"
-                            >ISO 9001:2025 · DSGVO-konform</span
+                            >ISO 9001:2025 / DSGVO-konform</span
                         >
                     </div>
                 </div>
@@ -47,28 +47,5 @@ defineProps<{
         <main class="flex-1">
             <slot />
         </main>
-
-        <footer class="border-t border-[#2a2827] bg-gpn-black py-5">
-            <div
-                class="mx-auto flex max-w-4xl flex-col items-center justify-between gap-2 px-6 sm:flex-row"
-            >
-                <div class="flex items-center gap-3">
-                    <img
-                        src="/logos/Logomark - Light - nobg.svg"
-                        alt=""
-                        class="h-5 w-auto opacity-50"
-                    />
-                    <p
-                        class="text-[10px] tracking-widest text-[#8a8280] uppercase"
-                    >
-                        Ihr Partner für professionelles Bargeldmanagement ·
-                        GPN24
-                    </p>
-                </div>
-                <p class="text-[9px] tracking-wider text-[#5a5250] uppercase">
-                    wechselstu.be · Enterprise Edition
-                </p>
-            </div>
-        </footer>
     </div>
 </template>

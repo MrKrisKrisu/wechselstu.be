@@ -115,7 +115,7 @@ onUnmounted(() => {
 
 <template>
     <PublicLayout
-        corporate-name="Ticket-Status-Portal™ · Real-Time-Tracking Edition"
+        corporate-name="Ticket-Status-Portal™ / Real-Time-Tracking Edition"
     >
         <div v-if="loading" class="mx-auto max-w-xl px-6 py-20 text-center">
             <div
@@ -138,7 +138,7 @@ onUnmounted(() => {
                     <p
                         class="mb-1 font-heading text-[10px] font-bold tracking-[0.3em] text-gpn-orange uppercase"
                     >
-                        GPN24 · Kassenmeldung
+                        GPN24 / Kassenmeldung
                     </p>
                     <h1
                         class="font-heading text-2xl font-black tracking-tight text-gpn-white"

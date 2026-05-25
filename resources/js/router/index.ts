@@ -67,7 +67,8 @@ const monitorRoutes: RouteRecordRaw[] = [
 const globalRoutes: RouteRecordRaw[] = [
     {
         path: '/',
-        redirect: '/login',
+        name: 'landing',
+        component: () => import('@/pages/public/StationLanding.vue'),
     },
     {
         path: '/:pathMatch(.*)*',

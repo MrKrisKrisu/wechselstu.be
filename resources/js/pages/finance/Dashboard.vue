@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, onUnmounted } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import AccountArrowRightIcon from 'vue-material-design-icons/AccountArrowRight.vue';
 import CashMultipleIcon from 'vue-material-design-icons/CashMultiple.vue';
 import CheckCircleIcon from 'vue-material-design-icons/CheckCircle.vue';
@@ -13,9 +13,15 @@ import type { Ticket } from '@/types';
 
 const ticketStore = useTicketStore();
 
+const now = ref(Date.now());
+let timer: ReturnType<typeof setInterval> | null = null;
 let leaveChannel: (() => void) | null = null;
 
 onMounted(async () => {
+    timer = setInterval(() => {
+        now.value = Date.now();
+    }, 30_000);
+
     try {
         const { data } = await axios.get('/api/finance/tickets');
         ticketStore.setTickets(data.tickets ?? data);
@@ -30,6 +36,10 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+    if (timer !== null) {
+        clearInterval(timer);
+    }
+
     leaveChannel?.();
 });
 
@@ -72,7 +82,7 @@ function typeLabel(ticket: Ticket): string {
 }
 
 function relativeTime(dateStr: string): string {
-    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    const diff = Math.floor((now.value - new Date(dateStr).getTime()) / 1000);
 
     if (diff < 60) {
         return `vor ${diff} Sek`;
