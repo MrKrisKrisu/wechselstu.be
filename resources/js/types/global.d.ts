@@ -5,6 +5,7 @@ declare global {
         __APP_CONFIG__?: {
             ticketType: string | null;
             isMainDomain: boolean;
+            memberDomain: string;
         };
     }
 }

@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\DetectDomainTicketType;
 use App\Http\Middleware\ValidateDashboardToken;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -22,12 +21,5 @@ return Application::configure(basePath: dirname(__DIR__))
             'dashboard.token' => ValidateDashboardToken::class,
         ]);
 
-        $middleware->web(append: [
-            DetectDomainTicketType::class,
-        ]);
-
-        $middleware->api(append: [
-            DetectDomainTicketType::class,
-        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {})->create();

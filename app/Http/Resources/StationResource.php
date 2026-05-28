@@ -15,6 +15,7 @@ class StationResource extends JsonResource
             'location' => $this->location,
             'token' => $this->token,
             'printer_ip' => $this->printer_ip,
+            'pretix_device_id' => $this->pretix_device_id,
             'created_at' => $this->created_at->toIso8601String(),
         ];
     }

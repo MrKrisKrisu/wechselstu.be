@@ -13,6 +13,7 @@ const isEdit = computed(() => !!id.value);
 const name = ref('');
 const location = ref('');
 const printerIp = ref('');
+const pretixDeviceId = ref('');
 const loading = ref(false);
 const loadingData = ref(false);
 const errors = ref<Record<string, string[]>>({});
@@ -30,6 +31,7 @@ onMounted(async () => {
             name.value = station.name;
             location.value = station.location;
             printerIp.value = station.printer_ip ?? '';
+            pretixDeviceId.value = station.pretix_device_id?.toString() ?? '';
         } catch {
             router.push('/finance/stations');
         } finally {
@@ -49,6 +51,9 @@ async function handleSubmit() {
                 name: name.value,
                 location: location.value,
                 printer_ip: printerIp.value || null,
+                pretix_device_id: pretixDeviceId.value
+                    ? parseInt(pretixDeviceId.value)
+                    : null,
             });
             successMessage.value = 'Kasse erfolgreich gespeichert.';
         } else {
@@ -56,6 +61,9 @@ async function handleSubmit() {
                 name: name.value,
                 location: location.value,
                 printer_ip: printerIp.value || null,
+                pretix_device_id: pretixDeviceId.value
+                    ? parseInt(pretixDeviceId.value)
+                    : null,
             });
             router.push('/finance/stations');
         }
@@ -193,6 +201,32 @@ function fieldError(field: string): string | null {
                     class="mt-1 text-xs text-red-600"
                 >
                     {{ fieldError('printer_ip') }}
+                </p>
+            </div>
+
+            <div>
+                <label
+                    class="mb-1 block text-sm font-medium text-slate-700"
+                    for="pretix_device_id"
+                    >Pretix Device-ID</label
+                >
+                <input
+                    id="pretix_device_id"
+                    v-model="pretixDeviceId"
+                    :class="
+                        fieldError('pretix_device_id')
+                            ? 'border-red-300 focus:border-red-400 focus:ring-red-400'
+                            : 'border-slate-300 focus:border-slate-500 focus:ring-slate-500'
+                    "
+                    class="w-full rounded-lg border px-3 py-2.5 text-sm text-slate-900 transition-colors focus:ring-1 focus:outline-none"
+                    placeholder="192"
+                    type="number"
+                />
+                <p
+                    v-if="fieldError('pretix_device_id')"
+                    class="mt-1 text-xs text-red-600"
+                >
+                    {{ fieldError('pretix_device_id') }}
                 </p>
             </div>
 

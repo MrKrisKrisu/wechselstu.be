@@ -3,7 +3,9 @@
 </script>
 
 <template>
-    <div class="min-h-screen w-full overflow-auto bg-slate-900 text-white">
+    <div
+        class="min-h-screen w-full cursor-none overflow-hidden bg-slate-900 text-white"
+    >
         <slot />
     </div>
 </template>

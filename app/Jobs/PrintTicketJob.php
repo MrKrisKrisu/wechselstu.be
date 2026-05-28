@@ -26,6 +26,14 @@ class PrintTicketJob implements ShouldQueue
 
     public function handle(PrinterService $printer): void
     {
+        Log::info('PrintTicketJob started', [
+            'ticket_id' => $this->ticket->id,
+            'ticket_type' => $this->ticket->type->value,
+            'printer_ip' => $this->printerIp ?? $this->ticket->station?->printer_ip,
+            'printed_by' => $this->printedBy,
+            'attempt' => $this->attempts(),
+        ]);
+
         if ($this->printerIp !== null) {
             $printer->printToIp($this->ticket, $this->printerIp, $this->printedBy);
         } else {

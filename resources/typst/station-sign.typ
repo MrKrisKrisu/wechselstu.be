@@ -90,6 +90,16 @@
     #text(size: 10.5pt, weight: "bold")[Nur die abgebildeten Personen sind berechtigt, Geld aus dieser Kasse zu entnehmen.]
     #v(1.5mm)
     #text(size: 9pt)[Only the persons shown in this photo are authorized to take money from this register.]
+    #v(4mm)
+    #rect(
+      width: 100%,
+      stroke: none,
+      fill: gpn-black,
+      inset: (x: 5mm, y: 3.5mm),
+      [
+        #text(size: 9pt, fill: gpn-white, weight: "bold")[DECT: #text(fill: gpn-orange)[GELD / 4353]]
+      ],
+    )
   ],
 
   [

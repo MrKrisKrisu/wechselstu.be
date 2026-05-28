@@ -15,7 +15,7 @@ class Ticket extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $fillable = ['station_id', 'type', 'status', 'message', 'assigned_to', 'accepted_at', 'done_at'];
+    protected $fillable = ['station_id', 'type', 'status', 'message', 'assigned_to', 'accepted_at', 'done_at', 'matrix_event_id'];
 
     protected function casts(): array
     {
@@ -50,6 +50,7 @@ class Ticket extends Model
 
     public function assignedUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'assigned_to');
+        return $this->belongsTo(User::class, 'assigned_to')
+            ->select(['id', 'name', 'member_token', 'avatar_path']);
     }
 }

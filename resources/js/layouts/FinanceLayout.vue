@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import AccountIcon from 'vue-material-design-icons/Account.vue';
+import AccountGroupIcon from 'vue-material-design-icons/AccountGroup.vue';
+import BankTransferIcon from 'vue-material-design-icons/BankTransfer.vue';
 import CloseIcon from 'vue-material-design-icons/Close.vue';
 import DomainIcon from 'vue-material-design-icons/Domain.vue';
 import HomeIcon from 'vue-material-design-icons/Home.vue';
@@ -15,15 +18,44 @@ const auth = useAuthStore();
 
 const sidebarOpen = ref(false);
 
-const navItems = [
-    { name: 'Dashboard', to: '/finance', icon: HomeIcon, exact: true },
-    { name: 'Kassen', to: '/finance/stations', icon: DomainIcon, exact: false },
-    {
-        name: 'Monitor-Zugang',
-        to: '/finance/dashboard-access',
-        icon: MonitorIcon,
-        exact: false,
-    },
+const navGroups = [
+    [
+        { name: 'Dashboard', to: '/finance', icon: HomeIcon, exact: true },
+        {
+            name: 'Hauptkasse',
+            to: '/finance/hauptkasse',
+            icon: BankTransferIcon,
+            exact: false,
+        },
+    ],
+    [
+        {
+            name: 'Team',
+            to: '/finance/users',
+            icon: AccountGroupIcon,
+            exact: false,
+        },
+        {
+            name: 'Mein Profil',
+            to: '/finance/profile',
+            icon: AccountIcon,
+            exact: false,
+        },
+    ],
+    [
+        {
+            name: 'Kassen',
+            to: '/finance/stations',
+            icon: DomainIcon,
+            exact: false,
+        },
+        {
+            name: 'Monitor-Zugang',
+            to: '/finance/dashboard-access',
+            icon: MonitorIcon,
+            exact: false,
+        },
+    ],
 ];
 
 function isActive(item: { to: string; exact: boolean }): boolean {
@@ -71,30 +103,33 @@ async function handleLogout() {
                 </button>
             </div>
 
-            <nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4">
-                <RouterLink
-                    v-for="item in navItems"
-                    :key="item.to"
-                    :to="item.to"
-                    class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
-                    :class="
-                        isActive(item)
-                            ? 'bg-slate-700 text-white'
-                            : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-                    "
-                >
-                    <component :is="item.icon" class="h-4 w-4 flex-shrink-0" />
-                    {{ item.name }}
-                </RouterLink>
+            <nav class="flex-1 overflow-y-auto px-3 py-4">
+                <template v-for="(group, gi) in navGroups" :key="gi">
+                    <div v-if="gi > 0" class="my-2 border-t border-slate-800" />
+                    <RouterLink
+                        v-for="item in group"
+                        :key="item.to"
+                        :to="item.to"
+                        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
+                        :class="
+                            isActive(item)
+                                ? 'bg-slate-700 text-white'
+                                : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                        "
+                    >
+                        <component
+                            :is="item.icon"
+                            class="h-4 w-4 flex-shrink-0"
+                        />
+                        {{ item.name }}
+                    </RouterLink>
+                </template>
             </nav>
 
             <div class="border-t border-slate-800 p-4">
                 <div v-if="auth.user" class="mb-3">
                     <p class="truncate text-sm font-medium text-white">
                         {{ auth.user.name }}
-                    </p>
-                    <p class="truncate text-xs text-slate-400">
-                        {{ auth.user.email }}
                     </p>
                 </div>
                 <button

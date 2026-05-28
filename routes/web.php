@@ -1,19 +1,41 @@
 <?php
 
-use App\Http\Middleware\DetectDomainTicketType;
-use Illuminate\Http\Request;
+use App\Enums\TicketType;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/s/{token}', function (Request $request, string $token) {
-    $ticketType = $request->attributes->get('ticket_type');
-
-    if ($ticketType && ! $request->query('type')) {
-        return redirect('/s/'.$token.'?type='.$ticketType);
+// Ticket-type domains: /s/{token} gets an automatic ?type= redirect
+foreach ([
+    TicketType::CashFull->value => config('domains.cash_full'),
+    TicketType::ChangeRequest->value => config('domains.change_request'),
+    TicketType::Other->value => config('domains.other'),
+] as $typeValue => $domain) {
+    if (! $domain) {
+        continue;
     }
 
-    return view('app');
-})->middleware(DetectDomainTicketType::class);
+    Route::domain($domain)->get('/s/{token}', function (string $token) use ($typeValue) {
+        return request()->query('type')
+            ? view('app')
+            : redirect('/s/'.$token.'?type='.$typeValue);
+    });
+}
 
+// Member domain: only serves profile pages, everything else is 404
+Route::domain(config('domains.member', 'member.localhost'))->group(function () {
+    Route::get('/{token}', function (string $token) {
+        return redirect('/member/'.$token);
+    })->where('token', '[A-Za-z0-9]{16,}');
+
+    Route::get('/member/{token}', function () {
+        return view('app');
+    });
+
+    Route::get('/{any}', function () {
+        abort(404);
+    })->where('any', '(?!api(?:/|$)).*');
+});
+
+// SPA catchall for all other domains
 Route::get('/{any}', function () {
     return view('app');
 })->where('any', '.*')->name('spa');

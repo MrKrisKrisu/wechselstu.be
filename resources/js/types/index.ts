@@ -4,6 +4,7 @@ export interface Station {
     location: string;
     token: string;
     printer_ip: string | null;
+    pretix_device_id: number | null;
     created_at?: string;
 }
 
@@ -23,10 +24,15 @@ export interface Ticket {
     status: TicketStatus;
     status_label: string;
     message: string | null;
-    station: Station;
+    station: Station | null;
     denominations: TicketDenomination[];
     assigned_to: string | null;
-    assigned_user: { id: string; name: string } | null;
+    assigned_user: {
+        id: string;
+        name: string;
+        profile_url: string | null;
+        avatar_url: string | null;
+    } | null;
     accepted_at: string | null;
     done_at: string | null;
     created_at: string;
@@ -42,7 +48,10 @@ export interface DashboardAccess {
 export interface User {
     id: string;
     name: string;
-    email: string;
+    member_token?: string;
+    member_bio?: string | null;
+    member_appearance?: string | null;
+    avatar_url?: string | null;
 }
 
 export const DENOMINATIONS: { cents: number; label: string }[] = [

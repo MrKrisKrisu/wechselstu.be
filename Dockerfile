@@ -40,6 +40,7 @@ RUN apk add --no-cache \
     supervisor \
     curl \
     xz \
+    libqrencode-tools \
     libpng-dev \
     libzip-dev \
     icu-dev \
@@ -48,7 +49,10 @@ RUN apk add --no-cache \
     pdo_mysql \
     zip \
     intl \
-    pcntl
+    pcntl \
+ && echo "upload_max_filesize = 10M" > /usr/local/etc/php/conf.d/uploads.ini \
+ && echo "post_max_size = 11M" >> /usr/local/etc/php/conf.d/uploads.ini \
+ && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
 
 # Install Typst
 RUN curl -fsSL https://github.com/typst/typst/releases/download/v0.14.2/typst-x86_64-unknown-linux-musl.tar.xz \
@@ -72,6 +76,7 @@ RUN mkdir -p bootstrap/cache \
         storage/framework/sessions \
         storage/framework/views \
         storage/logs \
+        storage/app/private/avatars \
  && chmod +x /entrypoint.sh \
  && chown -R www-data:www-data storage bootstrap/cache \
  && chmod -R 775 storage bootstrap/cache

@@ -12,7 +12,7 @@ class Station extends Model
 {
     use HasFactory, HasUuids;
 
-    protected $fillable = ['name', 'location', 'printer_ip'];
+    protected $fillable = ['name', 'location', 'printer_ip', 'pretix_device_id'];
 
     protected static function booted(): void
     {

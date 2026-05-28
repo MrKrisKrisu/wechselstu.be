@@ -22,7 +22,11 @@ class SendMatrixNotificationJob implements ShouldQueue
 
     public function handle(MatrixService $matrix): void
     {
-        $matrix->notify($this->ticket);
+        $eventId = $matrix->notify($this->ticket);
+
+        if ($eventId) {
+            $this->ticket->update(['matrix_event_id' => $eventId]);
+        }
     }
 
     public function failed(\Throwable $e): void

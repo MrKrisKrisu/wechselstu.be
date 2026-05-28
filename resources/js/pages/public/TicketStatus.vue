@@ -3,8 +3,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import CashMultipleIcon from 'vue-material-design-icons/CashMultiple.vue';
 import ClipboardTextIcon from 'vue-material-design-icons/ClipboardText.vue';
 import CurrencyEurIcon from 'vue-material-design-icons/CurrencyEur.vue';
+import OpenInNewIcon from 'vue-material-design-icons/OpenInNew.vue';
 import { useRoute } from 'vue-router';
-import { useStationChannel } from '@/composables/useEcho';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import axios from '@/lib/axios';
 import type { Ticket, TicketStatus } from '@/types';
@@ -16,7 +16,7 @@ const ticketId = route.params.id as string;
 const ticket = ref<Ticket | null>(null);
 const loading = ref(true);
 const error = ref<string | null>(null);
-let leaveChannel: (() => void) | null = null;
+let pollTimer: ReturnType<typeof setInterval> | null = null;
 
 const statusConfig = computed(
     (): {
@@ -85,31 +85,30 @@ const denominationLabel = computed(() => (cents: number): string => {
     );
 });
 
-onMounted(async () => {
+async function fetchTicket() {
     try {
         const res = await axios.get(`/api/tickets/${ticketId}`);
         ticket.value = res.data.ticket ?? res.data;
 
-        // Subscribe to live updates on the station channel
-        if (ticket.value?.station?.id) {
-            leaveChannel = useStationChannel(
-                ticket.value.station.id,
-                (updated: Ticket) => {
-                    if (updated.id === ticketId) {
-                        ticket.value = updated;
-                    }
-                },
-            );
+        if (ticket.value?.status === 'done' && pollTimer !== null) {
+            clearInterval(pollTimer);
+            pollTimer = null;
         }
     } catch {
         error.value = 'Ticket nicht gefunden.';
-    } finally {
-        loading.value = false;
     }
+}
+
+onMounted(async () => {
+    await fetchTicket();
+    loading.value = false;
+    pollTimer = setInterval(fetchTicket, 500);
 });
 
 onUnmounted(() => {
-    leaveChannel?.();
+    if (pollTimer !== null) {
+        clearInterval(pollTimer);
+    }
 });
 </script>
 
@@ -143,9 +142,12 @@ onUnmounted(() => {
                     <h1
                         class="font-heading text-2xl font-black tracking-tight text-gpn-white"
                     >
-                        {{ ticket.station.name }}
+                        {{ ticket.station?.name ?? 'Keine Kasse' }}
                     </h1>
-                    <p class="mt-1 text-sm text-[#7a7370]">
+                    <p
+                        v-if="ticket.station"
+                        class="mt-1 text-sm text-[#7a7370]"
+                    >
                         Standort:
                         <span class="text-[#b0acaa]">{{
                             ticket.station.location
@@ -173,27 +175,85 @@ onUnmounted(() => {
                         v-if="
                             ticket.assigned_user && ticket.status === 'accepted'
                         "
-                        class="mt-3"
+                        class="mt-4 flex items-center justify-center gap-3"
                     >
-                        <p
-                            class="font-heading text-xs font-bold tracking-widest text-[#8c3a0a] uppercase"
+                        <img
+                            v-if="ticket.assigned_user.avatar_url"
+                            :src="ticket.assigned_user.avatar_url"
+                            :alt="ticket.assigned_user.name"
+                            class="h-10 w-10 flex-shrink-0 rounded-full object-cover ring-2 ring-[#8c3a0a]/30"
+                        />
+                        <div
+                            v-else
+                            class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#8c3a0a]/20 text-sm font-black text-[#8c3a0a]"
                         >
-                            Bearbeitet von
-                        </p>
-                        <p class="mt-0.5 text-sm font-semibold text-[#8c3a0a]">
-                            {{ ticket.assigned_user.name }}
-                        </p>
+                            {{
+                                ticket.assigned_user.name
+                                    .charAt(0)
+                                    .toUpperCase()
+                            }}
+                        </div>
+                        <div class="text-left">
+                            <p
+                                class="text-[10px] font-bold tracking-widest text-[#8c3a0a]/60 uppercase"
+                            >
+                                Bearbeitet von
+                            </p>
+                            <a
+                                v-if="ticket.assigned_user.profile_url"
+                                :href="ticket.assigned_user.profile_url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center gap-1 text-sm font-bold text-[#8c3a0a] underline underline-offset-2"
+                            >
+                                {{ ticket.assigned_user.name }}
+                                <OpenInNewIcon :size="13" />
+                            </a>
+                            <p v-else class="text-sm font-bold text-[#8c3a0a]">
+                                {{ ticket.assigned_user.name }}
+                            </p>
+                        </div>
                     </div>
                     <div
                         v-if="ticket.assigned_user && ticket.status === 'done'"
-                        class="mt-3"
+                        class="mt-4 flex items-center justify-center gap-3"
                     >
-                        <p class="text-sm text-green-700">
-                            Wir hoffen, du warst mit der Arbeit von
-                            <strong>{{ ticket.assigned_user.name }}</strong>
-                            zufrieden und hinterlässt ein positives Feedback bei
-                            Google. ⭐
-                        </p>
+                        <img
+                            v-if="ticket.assigned_user.avatar_url"
+                            :src="ticket.assigned_user.avatar_url"
+                            :alt="ticket.assigned_user.name"
+                            class="h-10 w-10 flex-shrink-0 rounded-full object-cover ring-2 ring-green-400/40"
+                        />
+                        <div
+                            v-else
+                            class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-green-100 text-sm font-black text-green-700"
+                        >
+                            {{
+                                ticket.assigned_user.name
+                                    .charAt(0)
+                                    .toUpperCase()
+                            }}
+                        </div>
+                        <div class="text-left">
+                            <p
+                                class="text-[10px] font-bold tracking-widest text-green-700/60 uppercase"
+                            >
+                                Erledigt von
+                            </p>
+                            <a
+                                v-if="ticket.assigned_user.profile_url"
+                                :href="ticket.assigned_user.profile_url"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="inline-flex items-center gap-1 text-sm font-bold text-green-700 underline underline-offset-2"
+                            >
+                                {{ ticket.assigned_user.name }}
+                                <OpenInNewIcon :size="13" />
+                            </a>
+                            <p v-else class="text-sm font-bold text-green-700">
+                                {{ ticket.assigned_user.name }}
+                            </p>
+                        </div>
                     </div>
                 </div>
 

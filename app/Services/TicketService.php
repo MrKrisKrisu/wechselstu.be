@@ -9,6 +9,7 @@ use App\Models\Station;
 use App\Models\Ticket;
 use App\Models\User;
 use App\Repositories\Interfaces\TicketRepositoryInterface;
+use Illuminate\Support\Carbon;
 
 class TicketService
 {
@@ -16,10 +17,10 @@ class TicketService
         private readonly TicketRepositoryInterface $tickets,
     ) {}
 
-    public function createTicket(Station $station, TicketType $type, array $data): Ticket
+    public function createTicket(?Station $station, TicketType $type, array $data): Ticket
     {
         $ticket = $this->tickets->create([
-            'station_id' => $station->id,
+            'station_id' => $station?->id,
             'type' => $type,
             'status' => 'open',
             'message' => $data['message'] ?? null,
@@ -34,6 +35,13 @@ class TicketService
                     ]);
                 }
             }
+        }
+
+        if (!empty($data['scheduled_at'])) {
+            $ticket->timestamps = false;
+            $ticket->created_at = Carbon::parse($data['scheduled_at'], 'Europe/Berlin')->utc();
+            $ticket->save();
+            $ticket->timestamps = true;
         }
 
         $ticket->load(['station', 'denominations', 'assignedUser']);

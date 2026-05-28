@@ -47,5 +47,24 @@ defineProps<{
         <main class="flex-1">
             <slot />
         </main>
+
+        <footer class="border-t-2 border-gpn-orange/30 bg-gpn-black px-6 py-4">
+            <div class="mx-auto max-w-4xl">
+                <div class="flex items-center gap-3">
+                    <span
+                        class="flex-shrink-0 rounded bg-gpn-orange px-2 py-0.5 font-heading text-[10px] font-black tracking-[0.2em] text-white uppercase"
+                    >
+                        Zeitkritisch?
+                    </span>
+                    <p class="text-xs text-[#8a8280]">
+                        Bei dringenden Anliegen per DECT anrufen:
+                        <span
+                            class="font-mono font-bold tracking-widest text-gpn-orange"
+                            >GELD / 4353</span
+                        >
+                    </p>
+                </div>
+            </div>
+        </footer>
     </div>
 </template>

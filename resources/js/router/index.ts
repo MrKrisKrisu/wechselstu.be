@@ -39,6 +39,21 @@ const financeRoutes: RouteRecordRaw[] = [
                 name: 'finance.dashboard-access',
                 component: () => import('@/pages/finance/DashboardAccess.vue'),
             },
+            {
+                path: 'hauptkasse',
+                name: 'finance.hauptkasse',
+                component: () => import('@/pages/finance/Hauptkasse.vue'),
+            },
+            {
+                path: 'profile',
+                name: 'finance.profile',
+                component: () => import('@/pages/finance/Profile.vue'),
+            },
+            {
+                path: 'users',
+                name: 'finance.users',
+                component: () => import('@/pages/finance/Users.vue'),
+            },
         ],
     },
 ];
@@ -53,6 +68,11 @@ const publicRoutes: RouteRecordRaw[] = [
         path: '/t/:id',
         name: 'ticket.status',
         component: () => import('@/pages/public/TicketStatus.vue'),
+    },
+    {
+        path: '/member/:token',
+        name: 'member.profile',
+        component: () => import('@/pages/public/MemberProfile.vue'),
     },
 ];
 
@@ -88,6 +108,21 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to) => {
+    const memberDomain =
+        window.__APP_CONFIG__?.memberDomain ?? 'member.localhost';
+
+    if (
+        window.location.hostname === memberDomain &&
+        !to.path.startsWith('/member/') &&
+        to.path !== '/'
+    ) {
+        const segment = to.path.replace(/^\//, '');
+
+        if (segment && !segment.includes('/')) {
+            return { name: 'member.profile', params: { token: segment } };
+        }
+    }
+
     const auth = useAuthStore();
 
     if (to.meta.requiresAuth) {

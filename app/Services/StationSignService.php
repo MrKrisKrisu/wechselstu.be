@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Station;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 use Symfony\Component\Process\Process;
 
@@ -46,8 +47,15 @@ class StationSignService
             '--input', 'url-other='.$urls['other'],
         ];
 
-        $photoPath = storage_path('app/station-sign/photo.jpg');
-        if (is_file($photoPath)) {
+        $photo = DB::table('team_photo')->select('photo', 'mime')->first();
+        if ($photo) {
+            $ext = match ($photo->mime) {
+                'image/png' => 'png',
+                'image/webp' => 'webp',
+                default => 'jpg',
+            };
+            $photoPath = $tempDir.'/team-photo.'.$ext;
+            file_put_contents($photoPath, $photo->photo);
             $args[] = '--input';
             $args[] = 'photo-path='.$photoPath;
         }

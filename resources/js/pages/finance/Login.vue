@@ -5,7 +5,7 @@ import axios from '@/lib/axios';
 
 const router = useRouter();
 
-const email = ref('');
+const username = ref('');
 const password = ref('');
 const error = ref('');
 const loading = ref(false);
@@ -17,7 +17,7 @@ async function handleSubmit() {
     try {
         await axios.get('/sanctum/csrf-cookie');
         await axios.post('/login', {
-            email: email.value,
+            name: username.value,
             password: password.value,
         });
         router.push('/finance');
@@ -65,19 +65,19 @@ async function handleSubmit() {
                 <form @submit.prevent="handleSubmit" class="space-y-4">
                     <div>
                         <label
-                            for="email"
+                            for="username"
                             class="mb-1 block text-sm font-medium text-slate-700"
                         >
-                            E-Mail
+                            Benutzername
                         </label>
                         <input
-                            id="email"
-                            v-model="email"
-                            type="email"
+                            id="username"
+                            v-model="username"
+                            type="text"
                             required
-                            autocomplete="email"
+                            autocomplete="username"
                             class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:border-slate-500 focus:ring-1 focus:ring-slate-500 focus:outline-none"
-                            placeholder="name@example.com"
+                            placeholder="benutzername"
                         />
                     </div>
 

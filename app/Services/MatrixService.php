@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Enums\TicketStatus;
 use App\Enums\TicketType;
 use App\Models\Ticket;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use RuntimeException;
 
 class MatrixService
 {
@@ -22,45 +24,39 @@ class MatrixService
         $this->roomId = config('services.matrix.room_id', '');
     }
 
-    public function notify(Ticket $ticket): void
+    public function notify(Ticket $ticket): ?string
     {
-        if (empty($this->homeserver) || empty($this->accessToken) || empty($this->roomId)) {
+        if (! $this->isConfigured()) {
             Log::warning('Matrix not configured, skipping notification', ['ticket_id' => $ticket->id]);
 
-            return;
+            return null;
         }
 
-        $message = $this->buildMessage($ticket);
+        $content = $this->buildContent($ticket);
         $txnId = 'ticket_'.$ticket->id.'_'.time();
-        $roomId = urlencode($this->roomId);
-        $url = "{$this->homeserver}/_matrix/client/v3/rooms/{$roomId}/send/m.room.message/{$txnId}";
 
-        $response = Http::timeout(10)
-            ->withToken($this->accessToken)
-            ->put($url, [
-                'msgtype' => 'm.text',
-                'body' => $message,
-                'format' => 'org.matrix.custom.html',
-                'formatted_body' => nl2br(e($message)),
-            ]);
-
-        if (! $response->successful()) {
-            throw new \RuntimeException("Matrix API returned HTTP {$response->status()}: ".$response->body());
-        }
+        return $this->sendEvent($txnId, $content);
     }
 
-    private function buildMessage(Ticket $ticket): string
+    private function isConfigured(): bool
     {
-        $emoji = match ($ticket->type) {
-            TicketType::CashFull => '💰',
-            TicketType::ChangeRequest => '🪙',
-            TicketType::Other => '📝',
+        return ! empty($this->homeserver) && ! empty($this->accessToken) && ! empty($this->roomId);
+    }
+
+    private function buildContent(Ticket $ticket): array
+    {
+        $done = $ticket->status === TicketStatus::Done;
+        $time = $ticket->created_at->format('H:i');
+
+        $statusEmoji = match ($ticket->status) {
+            TicketStatus::Open => '🚨',
+            TicketStatus::Accepted => '⏳',
+            TicketStatus::Done => '✅',
         };
 
-        $time = $ticket->created_at->format('H:i');
         $lines = [
-            "{$emoji} *{$ticket->type->label()}* — {$ticket->station->name}",
-            "📍 {$ticket->station->location} | ⏰ {$time}",
+            "{$statusEmoji} [{$ticket->type->label()}] {$ticket->station->name}",
+            "Standort: {$ticket->station->location} | Zeit: {$time}",
         ];
 
         if ($ticket->type === TicketType::ChangeRequest && $ticket->denominations->isNotEmpty()) {
@@ -69,13 +65,73 @@ class MatrixService
 
                 return "{$d->quantity}x {$amount} €";
             });
-            $lines[] = '🪙 '.implode(', ', $parts->toArray());
+            $lines[] = 'Stueckelung: '.implode(', ', $parts->toArray());
         }
 
         if (! empty($ticket->message)) {
-            $lines[] = '💬 '.$ticket->message;
+            $lines[] = 'Nachricht: '.$ticket->message;
         }
 
-        return implode("\n", $lines);
+        $statusLine = 'Status: '.$ticket->status->label();
+        if ($ticket->assignedUser) {
+            $statusLine .= ' von '.$ticket->assignedUser->name;
+        }
+        $lines[] = $statusLine;
+
+        $plainBody = implode("\n", $lines);
+        $htmlLines = array_map(fn ($l) => e($l), $lines);
+        $htmlBody = implode('<br>', $htmlLines);
+
+        if ($done) {
+            $plainBody = '[ERLEDIGT] '.$plainBody;
+            $htmlBody = '<del>'.$htmlBody.'</del>';
+        }
+
+        return [
+            'msgtype' => 'm.text',
+            'body' => $plainBody,
+            'format' => 'org.matrix.custom.html',
+            'formatted_body' => $htmlBody,
+        ];
+    }
+
+    private function sendEvent(string $txnId, array $content): string
+    {
+        $roomId = urlencode($this->roomId);
+        $url = "{$this->homeserver}/_matrix/client/v3/rooms/{$roomId}/send/m.room.message/{$txnId}";
+
+        $response = Http::timeout(10)
+            ->withToken($this->accessToken)
+            ->put($url, $content);
+
+        if (! $response->successful()) {
+            throw new RuntimeException("Matrix API returned HTTP {$response->status()}: ".$response->body());
+        }
+
+        return $response->json('event_id');
+    }
+
+    public function update(Ticket $ticket): void
+    {
+        if (! $this->isConfigured() || empty($ticket->matrix_event_id)) {
+            return;
+        }
+
+        $content = $this->buildContent($ticket);
+        $txnId = 'ticket_update_'.$ticket->id.'_'.time();
+
+        $editContent = [
+            'msgtype' => 'm.text',
+            'body' => '* '.$content['body'],
+            'format' => 'org.matrix.custom.html',
+            'formatted_body' => $content['formatted_body'],
+            'm.new_content' => $content,
+            'm.relates_to' => [
+                'rel_type' => 'm.replace',
+                'event_id' => $ticket->matrix_event_id,
+            ],
+        ];
+
+        $this->sendEvent($txnId, $editContent);
     }
 }

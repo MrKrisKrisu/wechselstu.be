@@ -47,4 +47,20 @@ return [
         'other' => env('DOMAIN_OTHER', ''),
     ],
 
+    'kassenbuch' => [
+        'base_url' => env('KASSENBUCH_BASE_URL', ''),
+        'username' => env('KASSENBUCH_USERNAME', ''),
+        'password' => env('KASSENBUCH_PASSWORD', ''),
+        'account' => (int) env('KASSENBUCH_ACCOUNT', 0),
+        'entity_name' => env('KASSENBUCH_ENTITY_NAME', 'Wechselstube'),
+    ],
+
+    'pretix' => [
+        'base_url' => env('PRETIX_BASE_URL', ''),
+        'organizer' => env('PRETIX_ORGANIZER', ''),
+        'token' => env('PRETIX_API_TOKEN', ''),
+        'device_ids' => array_filter(array_map('intval', explode(',', env('PRETIX_DEVICE_IDS', '')))),
+        'cashier_ids' => array_filter(array_map('intval', explode(',', env('PRETIX_CASHIER_IDS', '')))),
+    ],
+
 ];

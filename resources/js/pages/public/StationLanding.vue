@@ -43,7 +43,7 @@ const corporateNames: Record<TicketType, string[]> = {
     ],
     change_request: [
         'GPN Kleingeld-Logistik-Hub™ / Münzen as a Service',
-        'Wechselstu.be® / Powered by Gulasch & Kaffeesatz',
+        'Wechselstu.be® / Powered by Gulasch & Mate',
         'Gulaschprogrammiernacht Münz-Beschaffungs-Portal™',
     ],
     other: [
@@ -199,7 +199,7 @@ function submit(): void {
                 <div class="flex items-center justify-between">
                     <RouterLink
                         class="text-[10px] tracking-widest text-gpn-gray/40 uppercase transition-colors hover:text-gpn-gray"
-                        to="/login"
+                        to="/finance"
                     >
                         Login
                     </RouterLink>

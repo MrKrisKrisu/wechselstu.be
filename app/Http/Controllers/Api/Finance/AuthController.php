@@ -11,11 +11,16 @@ class AuthController extends Controller
 {
     public function user(Request $request): JsonResponse
     {
+        $user = $request->user();
+
         return response()->json([
             'user' => [
-                'id' => $request->user()->id,
-                'name' => $request->user()->name,
-                'email' => $request->user()->email,
+                'id' => $user->id,
+                'name' => $user->name,
+                'member_token' => $user->member_token,
+                'member_bio' => $user->member_bio,
+                'member_appearance' => $user->member_appearance,
+                'avatar_url' => $user->avatar_path ? "/api/members/{$user->member_token}/avatar" : null,
             ],
         ]);
     }

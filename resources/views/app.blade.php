@@ -10,6 +10,7 @@
             window.__APP_CONFIG__ = {!! json_encode([
                 'ticketType' => request()->attributes->get('ticket_type'),
                 'isMainDomain' => request()->getHost() === parse_url(config('app.url'), PHP_URL_HOST),
+                'memberDomain' => config('domains.member'),
             ]) !!};
         </script>
         @vite(['resources/js/app.ts'])

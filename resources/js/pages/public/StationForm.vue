@@ -95,7 +95,8 @@ onMounted(async () => {
         const res = await axios.get(`/api/stations/${token}`);
         station.value = res.data.station ?? res.data;
     } catch {
-        error.value = 'Station nicht gefunden. Bitte überprüfe den QR-Code.';
+        error.value =
+            'Unbekannte Kasse. Bitte überprüfe den eingegebenen Token.';
     } finally {
         loading.value = false;
     }
@@ -165,6 +166,13 @@ async function submit(): Promise<void> {
         <div v-else-if="error" class="mx-auto max-w-xl px-6 py-20 text-center">
             <div class="rounded-lg border border-red-200 bg-red-50 p-8">
                 <p class="font-semibold text-red-700">{{ error }}</p>
+                <button
+                    class="mt-6 text-xs tracking-widest text-red-400 uppercase transition-colors hover:text-red-700"
+                    type="button"
+                    @click="router.push('/')"
+                >
+                    ← Zurück
+                </button>
             </div>
         </div>
 
